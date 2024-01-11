@@ -1,0 +1,70 @@
+NUÔI NICK FACEBOOK NHƯ THẾ NÀO ? 
+
+NGÀY 1
+- Xem wach 2-4 video - thời gian xem 30-60s (không like,share,cmt)
+- bài viết newfeed 10-15 - thời gian 5-10s(không like,share,cmt)
+- đọc thông báo 1-1 thời gian 1-2s
+
+NGÀY 2
+- Xem wach 2-4 video - thời gian xem 30-60s (không like,share,cmt)
+- bài viết newfeed 10-15 - thời gian 5-10s(không like,share,cmt)
+- đọc thông báo 1-1 thời gian 1-2s
+- THAM GIA NHÓM THEO TỪ KHÓA 1-1 (tùy đối tượng muốn nhắm đến)
+- xem story 1-3 (không like,share,cmt)
+- xác nhận kết bạn 10-15
+
+NGÀY 3
+- Xem wach 2-4 video - thời gian xem 30-60s (không like,share,cmt)
+- bài viết newfeed 10-15 - thời gian 5-10s(không like,share,cmt)
+- đọc thông báo 1-1 thời gian 1-2s
+- THAM GIA NHÓM THEO TỪ KHÓA 1-1 (tùy đối tượng muốn nhắm đến)
+- xem story 1-3 (không like,share,cmt)
+- xác nhận kết bạn 10-15
+- kết bạn gợi ý 3-5
+
+NGÀY 4
+- Xem wach 2-4 video - thời gian xem 30-60s (không like,share,cmt)
+- bài viết newfeed 10-15 - thời gian 5-10s(không like,share,cmt)
+- đọc thông báo 1-1 thời gian 1-2s
+- THAM GIA NHÓM THEO TỪ KHÓA 1-1 (tùy đối tượng muốn nhắm đến)
+- xem story 1-3 (không like,share,cmt)
+- xác nhận kết bạn 10-15
+- kết bạn gợi ý 3-5 
+- ĐĂNG STT 1
+
+NGÀY 5
+- Xem wach 2-4 video - thời gian xem 30-60s có cho like
+- bài viết newfeed 10-15 - thời gian 5-10s CÓ CHO LIKE
+- đọc thông báo 1-1 thời gian 1-2s
+- THAM GIA NHÓM THEO TỪ KHÓA 1-1 (tùy đối tượng muốn nhắm đến)
+- xem story 1-3 (không like,share,cmt)
+- xác nhận kết bạn 10-15
+- ĐĂNG STT 1
+
+NGÀY 6
+- Xem wach 2-4 video - thời gian xem 30-60s có cho like
+- bài viết newfeed 3-5 - thời gian 5-10s CÓ CHO LIKE
+- đọc thông báo 1-1 thời gian 1-2s
+- THAM GIA NHÓM THEO TỪ KHÓA 1-5 (tùy đối tượng muốn nhắm đến)
+- xem story 1-3 (không like,share,cmt)
+- xác nhận kết bạn 10-15
+- ĐĂNG STT 1
+
+NGÀY 7
+- Xem wach 2-4 video - thời gian xem 30-60s có cho like
+- bài viết newfeed 3-5 - thời gian 5-10s CÓ CHO LIKE
+- đọc thông báo 1-1 thời gian 1-2s
+- THAM GIA NHÓM THEO TỪ KHÓA 1-1 (tùy đối tượng muốn nhắm đến)
+- xem story 1-3 có cho like
+- xác nhận kết bạn 10-15
+- ĐĂNG STT 1
+
+-TỪ NGÀY 7 TRỞ ĐI VỀ SAU CỨ CHẠY CẤU HÌNH NGÀY 7 HOẶC CÁC NGÀY TRONG TUẦN (NÊN ĐỔI NHAU ĐỂ TRÁNH LẶP ĐI LẶP LẠI) ĐẾN KHI NÀO TRÊN 200BB, TRÊN 5 GROUP THÌ BẮT ĐẦU SEEDING VÀ LÀM THEO MỤC ĐÍCH ĐƯỢC
+- HOẶC CÓ THỂ TỰ TẠO CẤU HÌNH SEEDING CHO PHỤC VỤ MỤC ĐÍCH LÀ THÊM NHỮNG HÀNH ĐỘNG KHÁC VÍ DỤ JOIN GROUP THEO UID, KẾT BẠN THEO UID, THÊM BẠN BÈ VÀO GROUP. CHÚ Ý LÀ PHẢI KÈM THEO CÁC TƯƠNG TÁC THƯỜNG NGÀY HAY DÙNG NHƯ 5 NGÀY ĐẦU
+
+-MỖI 1 DCOM CHỈ LÊN CHẠY 2-300ACC LÀ NHIỀU NHẤT, 5 LUỒNG/IP DCOM LÀ NHIỀU NHẤT, SỐ LUỒNG TĂNG THEO NGÀY VÍ DỤ NGÀY 1 1 LUỒNG/IP NGÀY 2 2 LUỒNG/IP...NGÀY 5 5 LUỒNG/IP TỪ ĐÓ VỀ SAU CỨ CHẠY 5 LUỒNG/IP
+
+-TƯƠNG TỰ VỚI DCOM THÌ CHẠY BẰNG BỘ PROXY NÂNG LÊN DẦN DẦN VÀ NHÂN LÊN VỚI SỐ LUÔNG DCOM BẰNG SỐ LUỒNG TOOL CHẠY
+
+- VỚI PROXY TĨNH LÊN CHO 3 ACC/IP - 5ACC/IP LÀ NHIỀU NHẤT
+ĐÂY LÀ CẤU HÌNH NHẸ NHẤT KHI NUÔI ACC TÍNH TỪ LÚC CHO VÀO TOOL LÀ CHẠY NGÀY 1. KO CẦN BIẾT ACC ĐÃ REG

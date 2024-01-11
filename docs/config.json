@@ -1,0 +1,82 @@
+{
+	"day_1": [
+			{
+				"action": "watch_video",
+				"quantity": 4,
+				"like": false,
+				"share": false,
+				"comment": false,
+				"min_time": 30,
+				"max_time": 60
+			},
+			{
+				"action": "surf_newfeed",
+				"quantity": 15,
+				"like": false,
+				"share": false,
+				"comment": false,
+				"min_time": 10,
+				"max_time": 20
+			},
+			{
+				"action": "read_notification",
+				"quantity": 10,
+				"like": false,
+				"share": false,
+				"comment": false,
+				"min_time": 10,
+				"max_time": 20
+			}
+		]
+	,
+	"day_2": [
+			{
+				"action": "watch_video",
+				"quantity": 2,
+				"like": false,
+				"share": false,
+				"comment": false,
+				"each_time": 30
+			},
+			{
+				"action": "read_newfeed",
+				"quantity": 10,
+				"like": false,
+				"share": false,
+				"comment": false,
+				"each_time": 5
+			},
+			{
+				"action": "read_notification",
+				"quantity": 10,
+				"like": false,
+				"share": false,
+				"comment": false,
+				"each_time": 2
+			},
+			{
+				"action": "join_group",
+				"key_word": "fashion tân bình",
+				"quantity": 2,
+				"each_time": 10
+			},
+			{
+				"action": "watch_story",
+				"quantity": 2,
+				"like": false,
+				"share": false,
+				"comment": false,
+				"min_time": 10,
+				"max_time": 20
+			},
+			{
+				"action": "accept_add_friend",
+				"quantity": 10,
+				"each_time": 2
+			}
+		]
+	
+}
+	
+		
+	
