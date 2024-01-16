@@ -26,23 +26,27 @@ class WorkerSignals(QObject):
 
 class TiktokSocketWorker(QRunnable):
     def __init__(self, live_id: str) -> None:
+        super(TiktokSocketWorker, self).__init__()
         self.live_id = live_id
         self.signals = WorkerSignals()
 
     @pyqtSlot()
     def run(self):
-
-        # Instantiate the client with the user's username
-        client: TikTokLiveClient = TikTokLiveClient(unique_id=self.live_id)
-
-
-        # Define how you want to handle specific events via decorator
-        @client.on("connect")
-        async def on_connect(_: ConnectEvent):
-            self.signals.result.connect.emit(f"Connected to Room ID: {client.room_id}")
+        try:
+            # Instantiate the client with the user's username
+            client: TikTokLiveClient = TikTokLiveClient(unique_id=self.live_id)
 
 
-        client.run()
+            # Define how you want to handle specific events via decorator
+            @client.on("connect")
+            async def on_connect(_: ConnectEvent):
+                self.signals.result.emit('Chạy vào hàm on_connect')
+                self.signals.result.emit(f"Connected to Room ID: {client.room_id}")
+
+
+            client.run()
+        except Exception as err:
+            self.signals.result.emit('err', err)
 
 
 

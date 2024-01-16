@@ -1342,8 +1342,11 @@ class Ui_MainWindow(object):
         self.t3LiveStatusLineEdit.setText("Đang kết nối tới livestream...")
 
 
-        tiktok_socket_worker = TiktokSocketWorker(live_id="baraboy1122")
+        tiktok_socket_worker = TiktokSocketWorker(live_id="@lphung2712")
         tiktok_socket_worker.signals.result.connect(self.changeLiveConnectionStatus)
+
+        # Execute the worker in the thread pool
+        self.threadpool.start(tiktok_socket_worker)
 
     def changeLiveConnectionStatus(self, msg):
         print('msg', msg)
