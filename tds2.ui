@@ -1,0 +1,370 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1064</width>
+    <height>605</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QTabWidget" name="tabWidget">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>1061</width>
+      <height>581</height>
+     </rect>
+    </property>
+    <property name="currentIndex">
+     <number>0</number>
+    </property>
+    <widget class="QWidget" name="tab">
+     <attribute name="title">
+      <string>Thao tác</string>
+     </attribute>
+     <widget class="QTableWidget" name="tableWidget">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>110</y>
+        <width>1001</width>
+        <height>411</height>
+       </rect>
+      </property>
+      <row>
+       <property name="text">
+        <string>1</string>
+       </property>
+      </row>
+      <row>
+       <property name="text">
+        <string>2</string>
+       </property>
+      </row>
+      <column>
+       <property name="text">
+        <string>tds_username</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>tds_pass</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>face_uid</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>face_pass</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>cookie</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>token</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>proxy</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>user_agent</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>status</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>action</string>
+       </property>
+      </column>
+      <item row="0" column="0">
+       <property name="text">
+        <string>tds-user1</string>
+       </property>
+      </item>
+      <item row="0" column="1">
+       <property name="text">
+        <string>tds-pass1</string>
+       </property>
+      </item>
+      <item row="0" column="2">
+       <property name="text">
+        <string>61552711387154</string>
+       </property>
+      </item>
+      <item row="0" column="3">
+       <property name="text">
+        <string>buichieu2im</string>
+       </property>
+      </item>
+      <item row="0" column="4">
+       <property name="text">
+        <string>cookie-str-1</string>
+       </property>
+      </item>
+      <item row="1" column="0">
+       <property name="text">
+        <string>tds-user2</string>
+       </property>
+      </item>
+      <item row="1" column="1">
+       <property name="text">
+        <string>tds-pass2</string>
+       </property>
+      </item>
+      <item row="1" column="2">
+       <property name="text">
+        <string>61552997995019</string>
+       </property>
+      </item>
+      <item row="1" column="3">
+       <property name="text">
+        <string>hoangbinh0dj</string>
+       </property>
+      </item>
+      <item row="1" column="4">
+       <property name="text">
+        <string>cookie-str-2</string>
+       </property>
+      </item>
+     </widget>
+     <widget class="QPushButton" name="addAccountButton">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>40</y>
+        <width>101</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Yu Gothic</family>
+        <pointsize>10</pointsize>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>Add accounts</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="addProxyButton">
+      <property name="geometry">
+       <rect>
+        <x>120</x>
+        <y>40</y>
+        <width>101</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Yu Gothic</family>
+        <pointsize>10</pointsize>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>Add Proxies</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="saveProfiles">
+      <property name="geometry">
+       <rect>
+        <x>240</x>
+        <y>40</y>
+        <width>101</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Save Profiles</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="importConfig">
+      <property name="geometry">
+       <rect>
+        <x>360</x>
+        <y>40</y>
+        <width>101</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Import config</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="feedAccounts">
+      <property name="geometry">
+       <rect>
+        <x>480</x>
+        <y>40</y>
+        <width>101</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Feed accounts</string>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="configDays">
+      <property name="geometry">
+       <rect>
+        <x>590</x>
+        <y>40</y>
+        <width>51</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <item>
+       <property name="text">
+        <string>Day 1</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Day 2</string>
+       </property>
+      </item>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tab_2">
+     <attribute name="title">
+      <string>Công việc</string>
+     </attribute>
+     <widget class="QLabel" name="label">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>101</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>livestream (nguồn):</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="lineEdit">
+      <property name="geometry">
+       <rect>
+        <x>110</x>
+        <y>30</y>
+        <width>113</width>
+        <height>20</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_2">
+      <property name="geometry">
+       <rect>
+        <x>260</x>
+        <y>30</y>
+        <width>91</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Livestream (reup):</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="lineEdit_2">
+      <property name="geometry">
+       <rect>
+        <x>350</x>
+        <y>30</y>
+        <width>113</width>
+        <height>20</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_3">
+      <property name="geometry">
+       <rect>
+        <x>490</x>
+        <y>30</y>
+        <width>61</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Delay</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="lineEdit_3">
+      <property name="geometry">
+       <rect>
+        <x>550</x>
+        <y>30</y>
+        <width>51</width>
+        <height>20</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QTableWidget" name="tableWidget_2">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>100</y>
+        <width>1021</width>
+        <height>431</height>
+       </rect>
+      </property>
+      <column>
+       <property name="text">
+        <string>Comment</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Retrieved At</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Status</string>
+       </property>
+      </column>
+     </widget>
+    </widget>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1064</width>
+     <height>21</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

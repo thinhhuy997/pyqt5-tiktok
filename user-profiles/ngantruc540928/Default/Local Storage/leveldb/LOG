@@ -1,3 +1,8 @@
-2024/01/11-22:15:57.880 2788 Reusing MANIFEST C:\Users\thinh\Desktop\pyqt5-project\pyqt5-tiktok\user-profiles\ngantruc540928\Default\Local Storage\leveldb/MANIFEST-000001
-2024/01/11-22:15:57.906 2788 Recovering log #3
-2024/01/11-22:15:57.909 2788 Reusing old log C:\Users\thinh\Desktop\pyqt5-project\pyqt5-tiktok\user-profiles\ngantruc540928\Default\Local Storage\leveldb/000003.log 
+2024/01/12-17:43:20.004 1138 Creating DB C:\Users\Thinh\Desktop\pyqt5-project\pyqt5-tiktok\user-profiles\ngantruc540928\Default\Local Storage\leveldb since it was missing.
+2024/01/12-17:43:20.022 1138 Reusing MANIFEST C:\Users\Thinh\Desktop\pyqt5-project\pyqt5-tiktok\user-profiles\ngantruc540928\Default\Local Storage\leveldb/MANIFEST-000001
+2024/01/12-17:44:28.018 3b3c Level-0 table #5: started
+2024/01/12-17:44:28.025 3b3c Level-0 table #5: 106127 bytes OK
+2024/01/12-17:44:28.028 3b3c Delete type=0 #3
+2024/01/12-17:46:15.117 1138 Level-0 table #7: started
+2024/01/12-17:46:15.260 1138 Level-0 table #7: 2226509 bytes OK
+2024/01/12-17:46:15.263 1138 Delete type=0 #4

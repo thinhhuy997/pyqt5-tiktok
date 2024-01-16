@@ -1,3 +1,2 @@
-2024/01/11-22:15:57.824 2700 Reusing MANIFEST C:\Users\thinh\Desktop\pyqt5-project\pyqt5-tiktok\user-profiles\ngantruc540928\Default\shared_proto_db/MANIFEST-000001
-2024/01/11-22:15:57.825 2700 Recovering log #3
-2024/01/11-22:15:57.825 2700 Reusing old log C:\Users\thinh\Desktop\pyqt5-project\pyqt5-tiktok\user-profiles\ngantruc540928\Default\shared_proto_db/000003.log 
+2024/01/12-17:43:20.035 32bc Creating DB C:\Users\Thinh\Desktop\pyqt5-project\pyqt5-tiktok\user-profiles\ngantruc540928\Default\shared_proto_db since it was missing.
+2024/01/12-17:43:20.063 32bc Reusing MANIFEST C:\Users\Thinh\Desktop\pyqt5-project\pyqt5-tiktok\user-profiles\ngantruc540928\Default\shared_proto_db/MANIFEST-000001

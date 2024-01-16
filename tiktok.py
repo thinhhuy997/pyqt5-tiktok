@@ -65,8 +65,14 @@ class SeleniumWorker(QRunnable):
 
     @pyqtSlot()
     def run(self):
+        # self.driver = webdriver.Chrome()
+        self.driver = get_chromedriver(profile_id=self.profile_id)
 
-        self.login_by_credentials(tiktok_login_credential=self.tiktok_login_credential)
+    
+
+        # self.login_by_credentials(tiktok_login_credential=self.tiktok_login_credential)
+
+        time.sleep(2000)
 
         # if 'generate_profile' in self.tasks:
 
@@ -164,9 +170,9 @@ class SeleniumWorker(QRunnable):
     
     def login_by_credentials(self, tiktok_login_credential: dict):
 
-        tiktok_login_credential = self.tiktok_login_credential
+        # tiktok_login_credential = self.tiktok_login_credential
 
-        self.driver = get_chromedriver(proxy=self.proxy, profile_id=self.profile_id)
+        # self.driver = get_chromedriver(proxy=self.proxy, profile_id=self.profile_id)
 
         # self.driver = webdriver.Chrome()
 
@@ -175,10 +181,9 @@ class SeleniumWorker(QRunnable):
             # Navigate to the Facebook login page
             self.driver.get("https://www.tiktok.com/")
 
-            time.sleep(20)
+            time.sleep(50)
 
             # WebDriverWait(self.driver, 5).until(EC.presence_of_element_located((By.ID, "header-login-button"))).click()
-
 
             # # Find the username and password input fields and the login button using their respective attributes
             # username_input = self.driver.find_element(By.ID, "email")

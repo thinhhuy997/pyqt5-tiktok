@@ -9,7 +9,7 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QMainWindow, QFileDialog, QPushButton, QMenu, QAction, QMessageBox, QDialog, QVBoxLayout, QTextEdit, QLabel, QLineEdit, QHBoxLayout, QGridLayout
+from PyQt5.QtWidgets import QMainWindow, QFileDialog, QPushButton, QMenu, QAction, QMessageBox, QDialog, QVBoxLayout,QTextEdit, QLabel, QLineEdit, QTabWidget, QGridLayout
 from PyQt5.QtCore import QFile, QTextStream, QThreadPool, QJsonDocument
 from PyQt5 import QtCore
 from PyQt5.QtCore import Qt
@@ -18,11 +18,12 @@ import requests
 from tiktok import SeleniumWorker
 import time
 import traceback
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QIntValidator
 from pathlib import Path
 import json
 import os
 from proxy_chrome_driver import get_chromedriver
+from tiktok_socket import TiktokSocketWorker
 
 class PasswordDelegate(QtWidgets.QStyledItemDelegate):
     def initStyleOption(self, option, index):
@@ -91,15 +92,6 @@ class Ui_MainWindow(object):
         self.waiting_threads = 0
         self.completed_threads = 0
 
-        # self.config_days_format = {
-        #     'day_1': 'Day 1',
-        #     'day_2': 'Day 2',
-        #     'day_3': 'Day 3',
-        #     'day_4': 'Day 4',
-        #     'day_5': 'Day 5',
-        #     'day_6': 'Day 6',
-        #     'day_7': 'Day 7'
-        # }
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -109,54 +101,42 @@ class Ui_MainWindow(object):
 
 
         self.centralwidget = QtWidgets.QWidget(MainWindow)
-
-
-
         self.centralwidget.setObjectName("centralwidget")
-        # self.centralwidget = QtWidgets.QFrame(self.centralwidget)
-        # self.centralwidget.setGeometry(QtCore.QRect(30, 10, 1500, 80))
-        # font = QtGui.QFont()
-        # font.setPointSize(8)
-        # font.setBold(False)
-        # font.setWeight(50)
-        # self.centralwidget.setFont(font)
-        # self.centralwidget.setLayoutDirection(QtCore.Qt.LeftToRight)
-        # self.centralwidget.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        # self.centralwidget.setFrameShadow(QtWidgets.QFrame.Raised)
-        # self.centralwidget.setObjectName("frame")
-        
-        self.addAccountButton = QtWidgets.QPushButton(self.centralwidget)
+
+        # NEW TAB
+        self.tabWidget = QtWidgets.QTabWidget(self.centralwidget)
+        self.tabWidget.setGeometry(QtCore.QRect(0, 0, 1739, 1100))
+        self.tabWidget.setObjectName("tabWidget")
+
+        self.actionTab = QtWidgets.QWidget()
+        self.actionTab.setObjectName("actionTab")
+
+
+        self.addAccountButton = QtWidgets.QPushButton(self.actionTab)
         self.addAccountButton.setGeometry(QtCore.QRect(28, 20, 101, 31))
         self.addAccountButton.setObjectName("addAccountButton")
 
-        self.addProxyButton = QtWidgets.QPushButton(self.centralwidget)
+        self.addProxyButton = QtWidgets.QPushButton(self.actionTab)
         self.addProxyButton.setGeometry(QtCore.QRect(130, 20, 101, 31))
         self.addProxyButton.setObjectName("addProxyButton")
 
-
-
-        
-
         # NEW
-        self.saveProfiles = QtWidgets.QPushButton(self.centralwidget)
+        self.saveProfiles = QtWidgets.QPushButton(self.actionTab)
         self.saveProfiles.setGeometry(QtCore.QRect(232, 20, 101, 31))
         self.saveProfiles.setObjectName("saveProfiles")
 
-        self.importConfig = QtWidgets.QPushButton(self.centralwidget)
-        self.importConfig.setGeometry(QtCore.QRect(334, 20, 101, 31))
-        self.importConfig.setObjectName("importConfig")
+        # self.importConfig = QtWidgets.QPushButton(self.centralwidget)
+        # self.importConfig.setGeometry(QtCore.QRect(334, 20, 101, 31))
+        # self.importConfig.setObjectName("importConfig")
 
-        self.feedAccounts = QtWidgets.QPushButton(self.centralwidget)
-        self.feedAccounts.setGeometry(QtCore.QRect(436, 20, 101, 31))
-        self.feedAccounts.setObjectName("feedAccounts")
+        self.interactTiktok = QtWidgets.QPushButton(self.actionTab)
+        self.interactTiktok.setGeometry(QtCore.QRect(334, 20, 101, 31))
+        self.interactTiktok.setObjectName("interactTiktok")
 
-        self.exportData = QtWidgets.QPushButton(self.centralwidget)
-        self.exportData.setGeometry(QtCore.QRect(1400, 20, 101, 31))
-        self.exportData.setObjectName("exportData")
 
         
 
-        self.tableWidget = QtWidgets.QTableWidget(self.centralwidget)
+        self.tableWidget = QtWidgets.QTableWidget(self.actionTab)
         # 3rd and 4th parameters use to set width and height of the Table Widget
         self.tableWidget.setGeometry(QtCore.QRect(30, 130, 1616, 639))
 
@@ -197,55 +177,59 @@ class Ui_MainWindow(object):
         # self.set_column_width()
 
 
-        # Set specified width for column "UID"
+        # Set specified width for column "Username"
         self.tableWidget.setColumnWidth(0, 129)
 
-        # Set specified width for column "Passwod"
+        # Set specified width for column "Password"
         self.tableWidget.setColumnWidth(1, 129)
 
-        # Set specified width for column "Cookie"
+        # Set specified width for column "Email"
         self.tableWidget.setColumnWidth(2, 200)
 
+        # Set specified width for column "Email Password"
+        self.tableWidget.setColumnWidth(3, 129)
+
+        # Set specified width for column "Cookie"
+        self.tableWidget.setColumnWidth(4, 129)
+
         # Set specified width for column "Token"
-        self.tableWidget.setColumnWidth(3, 200)
-
-        # Set specified width for column "Profile status"
-        self.tableWidget.setColumnWidth(4, 95)
-
-        # Set specified width for column "Email"
         self.tableWidget.setColumnWidth(5, 129)
 
-        # Set specified width for column "Email_password"
+        # Set specified width for column "Profile Status"
         self.tableWidget.setColumnWidth(6, 129)
 
         # Set specified width for column "proxy"
-        self.tableWidget.setColumnWidth(7, 119)
+        self.tableWidget.setColumnWidth(7, 134)
+
+        # Set specified width for column "received jobs"
+        self.tableWidget.setColumnWidth(8, 123)
+
 
         # Set specified width for column "status"
-        self.tableWidget.setColumnWidth(8, 468)
+        self.tableWidget.setColumnWidth(9, 360)
 
 
         # Set row height
         self.tableWidget.verticalHeader().setDefaultSectionSize(30)
 
         # Label "File:""
-        self.filterLabel = QtWidgets.QLabel(self.centralwidget)
+        self.filterLabel = QtWidgets.QLabel(self.actionTab)
         self.filterLabel.setGeometry(QtCore.QRect(30, 90, 20, 16))
         self.filterLabel.setObjectName("filterLabel")
 
         # Combobox "category"
-        self.category = QtWidgets.QComboBox(self.centralwidget)
+        self.category = QtWidgets.QComboBox(self.actionTab)
         self.category.setGeometry(QtCore.QRect(54, 89, 120, 21))
         self.category.setObjectName("category")
         self.category.addItem("All category")
 
         # Button choose category options
-        self.categoryOptions = QtWidgets.QPushButton(self.centralwidget)
+        self.categoryOptions = QtWidgets.QPushButton(self.actionTab)
         self.categoryOptions.setGeometry(QtCore.QRect(179, 91, 20, 18))
         self.categoryOptions.setObjectName("categoryOptions")
 
         # NEW 6/1
-        self.widget = QtWidgets.QWidget(self.centralwidget)
+        self.widget = QtWidgets.QWidget(self.actionTab)
         self.widget.setGeometry(QtCore.QRect(180, 110, 109, 58))
         self.widget.setObjectName("widget")
         self.widget.setStyleSheet("background-color: #eeeee4;")
@@ -258,56 +242,27 @@ class Ui_MainWindow(object):
         self.RemoveCategory.setObjectName("RemoveCategory")
         self.RemoveCategory.setStyleSheet("background-color: white;")
 
-
-        # Label "config nuôi:""
-        self.feedingConfig = QtWidgets.QLabel(self.centralwidget)
-        self.feedingConfig.setGeometry(QtCore.QRect(225, 90, 60, 16))
-        self.feedingConfig.setObjectName("feedingConfig")
-
-        # configDays
-        self.configDays = QtWidgets.QComboBox(self.centralwidget)
-        self.configDays.setGeometry(QtCore.QRect(286, 89, 68, 21))
-        self.configDays.setObjectName("configDays")
-        self.configDays.addItem("")
-
-        
-
-        
-
-
         # Label "Total selected rows:"
-        self.totalSelectedRows = QtWidgets.QLabel(self.centralwidget)
+        self.totalSelectedRows = QtWidgets.QLabel(self.actionTab)
         self.totalSelectedRows.setGeometry(QtCore.QRect(30, 779, 741, 16))
         self.totalSelectedRows.setObjectName("totalSelectedRows")
 
         # Label "Total selected rows:"
-        self.totalRunningRows = QtWidgets.QLabel(self.centralwidget)
+        self.totalRunningRows = QtWidgets.QLabel(self.actionTab)
         self.totalRunningRows.setGeometry(QtCore.QRect(30, 799, 741, 16))
         self.totalRunningRows.setObjectName("totalRunningRows")
 
         # Label "Total selected rows:"
-        self.totalWaitingRows = QtWidgets.QLabel(self.centralwidget)
+        self.totalWaitingRows = QtWidgets.QLabel(self.actionTab)
         self.totalWaitingRows.setGeometry(QtCore.QRect(30, 819, 741, 16))
         self.totalWaitingRows.setObjectName("totalWaitingRows")
 
         # Label "Total selected rows:"
-        self.totalCompletedRows = QtWidgets.QLabel(self.centralwidget)
+        self.totalCompletedRows = QtWidgets.QLabel(self.actionTab)
         self.totalCompletedRows.setGeometry(QtCore.QRect(30, 839, 741, 16))
         self.totalCompletedRows.setObjectName("totalCompletedRows")
 
-        MainWindow.setCentralWidget(self.centralwidget)
-
-        self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1064, 21))
-        self.menubar.setObjectName("menubar")
-
-        MainWindow.setMenuBar(self.menubar)
-        self.statusbar = QtWidgets.QStatusBar(MainWindow)
-        self.statusbar.setObjectName("statusbar")
-        MainWindow.setStatusBar(self.statusbar)
-
-        self.retranslateUi(MainWindow)
-        QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        MainWindow.setCentralWidget(self.actionTab)
 
         # NEW - Right click menu
         self.tableWidget.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -318,35 +273,127 @@ class Ui_MainWindow(object):
         self.addAccountButton.clicked.connect(self.show_add_accounts_dialog)
         self.addProxyButton.clicked.connect(self.show_add_proxies_dialog)
         self.saveProfiles.clicked.connect(self.save_profiles)
-        self.importConfig.clicked.connect(self.import_config_from_file)
-        self.feedAccounts.clicked.connect(self.feed_accounts)
+        self.interactTiktok.clicked.connect(self.interact_tiktok)
         
-        # self.categoryOptions.clicked.connect(self.choose_category_options)
-
-        self.exportData.clicked.connect(self.exportToJson)
-
         # New 6/1
         self.category.currentTextChanged.connect(self.update_table)
         self.categoryOptions.clicked.connect(self.toggle_category_options)
         self.AddCategory.clicked.connect(self.show_add_new_category)
         self.RemoveCategory.clicked.connect(self.show_confirm_remove_category)
-
         # New
         self.tempTableWidget = QtWidgets.QTableWidget()
+        self.tabWidget.addTab(self.actionTab, "")
 
+        # TAB CONFIG TIKTOK JOB
+        self.jobConfiguration = QtWidgets.QWidget()
+        self.jobConfiguration.setObjectName("jobConfiguration")
+        self.livestreamLabel = QtWidgets.QLabel(self.jobConfiguration)
+        self.livestreamLabel.setGeometry(QtCore.QRect(30, 30, 101, 16))
+        self.livestreamLabel.setObjectName("livestreamLabel")
+
+        self.livestreamIdEdit = QtWidgets.QLineEdit(self.jobConfiguration)
+        self.livestreamIdEdit.setGeometry(QtCore.QRect(130, 30, 140, 20))
+        self.livestreamIdEdit.setObjectName("lineEdit")
+        
+        self.reLivestreamLabel = QtWidgets.QLabel(self.jobConfiguration)
+        self.reLivestreamLabel.setGeometry(QtCore.QRect(280, 30, 91, 16))
+        self.reLivestreamLabel.setObjectName("reLivestreamLabel")
+        self.reLivestreamIdEdit = QtWidgets.QLineEdit(self.jobConfiguration)
+        self.reLivestreamIdEdit.setGeometry(QtCore.QRect(370, 30, 140, 20))
+        self.reLivestreamIdEdit.setObjectName("livestreamIdEdit")
+
+        self.delayTimeLabel = QtWidgets.QLabel(self.jobConfiguration)
+        self.delayTimeLabel.setGeometry(QtCore.QRect(520, 30, 61, 16))
+        self.delayTimeLabel.setObjectName("delayTimeLabel")
+
+        self.delayTimeEdit = QtWidgets.QLineEdit(self.jobConfiguration)
+        self.delayTimeEdit.setGeometry(QtCore.QRect(584, 30, 51, 20))
+        self.delayTimeEdit.setObjectName("delayTimeEdit")
+
+        self.commentTable = QtWidgets.QTableWidget(self.jobConfiguration)
+        self.commentTable.setGeometry(QtCore.QRect(30, 100, 1021, 431))
+        self.commentTable.setObjectName("commentTable")
+        self.commentTable.setColumnCount(3)
+        self.commentTable.setRowCount(0)
+        item = QtWidgets.QTableWidgetItem()
+        self.commentTable.setHorizontalHeaderItem(0, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.commentTable.setHorizontalHeaderItem(1, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.commentTable.setHorizontalHeaderItem(2, item)
+        self.tabWidget.addTab(self.jobConfiguration, "")
+
+
+
+        
+
+        # TAB TIKTOK INTERACTIONS (throw heart)
+        self.tab_3 = QtWidgets.QWidget()
+        self.tab_3.setObjectName("tab_3")
+        self.t3LiveSrcLabel = QtWidgets.QLabel(self.tab_3)
+        self.t3LiveSrcLabel.setGeometry(QtCore.QRect(10, 30, 100, 16))
+        self.t3LiveSrclineEdit = QtWidgets.QLineEdit(self.tab_3)
+        self.t3LiveSrclineEdit.setGeometry(QtCore.QRect(110, 30, 113, 20))
+        self.t3LiveSrclineEdit.setObjectName("lineEdit")
+        self.t3WorkTimeLabel = QtWidgets.QLabel(self.tab_3)
+        self.t3WorkTimeLabel.setGeometry(QtCore.QRect(240, 30, 86, 16))
+        self.t3WorkTimeLabel.setObjectName("t3WorkTimeLabel")
+        self.t3WorkTimelineEdit = QtWidgets.QLineEdit(self.tab_3)
+        self.t3WorkTimelineEdit.setGeometry(QtCore.QRect(328, 30, 39, 20))
+        self.t3WorkTimelineEdit.setObjectName("t3WorkTimelineEdit")
+        self.t3LiveStatusLabel = QtWidgets.QLabel(self.tab_3)
+        self.t3LiveStatusLabel.setGeometry(QtCore.QRect(390, 30, 55, 16))
+        self.t3LiveStatusLabel.setObjectName("t3LiveStatusLabel")
+        self.t3LiveStatusLineEdit = QtWidgets.QLineEdit(self.tab_3)
+        self.t3LiveStatusLineEdit.setGeometry(QtCore.QRect(448, 30, 300, 20))
+        self.t3LiveStatusLineEdit.setObjectName("t3WorkTimelineEdit")
+        self.t3LiveStatusLineEdit.setEnabled(False)
+        self.t3SaveConfigBtn = QtWidgets.QPushButton(self.tab_3)
+        self.t3SaveConfigBtn.setGeometry(QtCore.QRect(900, 30, 51, 23))
+        self.t3SaveConfigBtn.setObjectName("t3SaveConfigBtn")
+        self.t3tableWidget = QtWidgets.QTableWidget(self.tab_3)
+        self.t3tableWidget.setGeometry(QtCore.QRect(10, 68, 941, 680))
+        self.t3tableWidget.setObjectName("t3tableWidget")
+        self.t3tableWidget.setColumnCount(3)
+        self.t3tableWidget.setRowCount(0)
+        item = QtWidgets.QTableWidgetItem()
+        self.t3tableWidget.setHorizontalHeaderItem(0, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.t3tableWidget.setHorizontalHeaderItem(1, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.t3tableWidget.setHorizontalHeaderItem(2, item)
+        self.t3tableWidget.setColumnWidth(0, 200)
+        self.t3tableWidget.setColumnWidth(1, 200)
+        self.t3tableWidget.setColumnWidth(2, 523)
+
+        self.t3SaveConfigBtn.clicked.connect(self.t3_saveConfig)
+
+        self.tabWidget.addTab(self.tab_3, "")
+
+        MainWindow.setCentralWidget(self.centralwidget)
+        self.menubar = QtWidgets.QMenuBar(MainWindow)
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1064, 21))
+        self.menubar.setObjectName("menubar")
+        MainWindow.setMenuBar(self.menubar)
+        self.statusbar = QtWidgets.QStatusBar(MainWindow)
+        self.statusbar.setObjectName("statusbar")
+        MainWindow.setStatusBar(self.statusbar)
+
+        
+
+        self.retranslateUi(MainWindow)
+        self.tabWidget.setCurrentIndex(2)
+        QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "TIKTOK"))
         self.addAccountButton.setText(_translate("MainWindow", "Thêm tài khoản"))
         self.addProxyButton.setText(_translate("MainWindow", "Thêm proxy"))
         self.categoryOptions.setText(_translate("MainWindow", "..."))
 
         self.saveProfiles.setText(_translate("MainWindow", "Tạo profile"))
-        self.importConfig.setText(_translate("MainWindow", "Thêm config"))
-        self.feedAccounts.setText(_translate("MainWindow", "Nuôi"))
-
-        self.exportData.setText(_translate("MainWindow", "Xuất dữ liệu"))
+        self.interactTiktok.setText(_translate("MainWindow", "Tương tác"))
 
         # new 6/1
         self.AddCategory.setText(_translate("MainWindow", "Add category"))
@@ -371,16 +418,15 @@ class Ui_MainWindow(object):
 
         item = self.tableWidget.horizontalHeaderItem(7)
         item.setText(_translate("MainWindow", "Proxy"))
-
         item = self.tableWidget.horizontalHeaderItem(8)
+        item.setText(_translate("MainWindow", "Received Jobs"))
+        item = self.tableWidget.horizontalHeaderItem(9)
         item.setText(_translate("MainWindow", "Status"))
 
         __sortingEnabled = self.tableWidget.isSortingEnabled()
         self.tableWidget.setSortingEnabled(False)
 
         self.filterLabel.setText(_translate("MainWindow", "Lọc:"))
-
-        self.feedingConfig.setText(_translate("MainWindow", "Config nuôi:"))
 
         # NEW
         self.totalSelectedRows.setText(_translate("MainWindow", f"(*) Selected accounts: {self.selected_rows_count}"))
@@ -394,20 +440,51 @@ class Ui_MainWindow(object):
 
         self.widget.hide()
 
+        # NEW 12.1.2024
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.actionTab), _translate("MainWindow", "Thao tác"))
+
         # NEW
         # Load defaut data when startup
-        self.load_default_data()
+        # self.load_default_data()
+
+        # RESTRANLATE FOR TAB CONFIG
+        self.livestreamLabel.setText(_translate("MainWindow", "Livestream (nguồn):"))
+        self.reLivestreamLabel.setText(_translate("MainWindow", "Livestream (reup):"))
+        self.delayTimeLabel.setText(_translate("MainWindow", "Time (delay):"))
+        item = self.commentTable.horizontalHeaderItem(0)
+        item.setText(_translate("MainWindow", "Comment"))
+        item = self.commentTable.horizontalHeaderItem(1)
+        item.setText(_translate("MainWindow", "Retrieved At"))
+        item = self.commentTable.horizontalHeaderItem(2)
+        item.setText(_translate("MainWindow", "Status"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.jobConfiguration), _translate("MainWindow", "Công việc"))
+
+        # TAB 3 - INTERACTIONS
+        self.t3LiveSrcLabel.setText(_translate("MainWindow", "Livestream (nguồn):"))
+        self.t3WorkTimeLabel.setText(_translate("MainWindow", "Work time (phút):"))
+        self.t3LiveStatusLabel.setText(_translate("MainWindow", "Trạng thái: chưa kết nối"))
+        self.t3WorkTimelineEdit.setValidator(QIntValidator(1, 60))
+        self.t3LiveStatusLineEdit.setText("Chưa kết nối!")
+        self.t3SaveConfigBtn.setText(_translate("MainWindow", "Lưu"))
+        item = self.t3tableWidget.horizontalHeaderItem(0)
+        item.setText(_translate("MainWindow", "Started time"))
+        item = self.t3tableWidget.horizontalHeaderItem(1)
+        item.setText(_translate("MainWindow", "Interaction quantity"))
+        item = self.t3tableWidget.horizontalHeaderItem(2)
+        item.setText(_translate("MainWindow", "Status"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("MainWindow", "Tương tác"))
+
 
     def open_dialog(self):
         dialog = QDialog()
         # Create layout
-        layout = QVBoxLayout(self.centralwidget)
+        layout = QVBoxLayout(self.actionTab)
 
         # Create buttons
-        button1 = QPushButton('Use Cookie', self.centralwidget)
+        button1 = QPushButton('Use Cookie', self.actionTab)
         button1.clicked.connect(self.save_profile_by_cookie)
 
-        button2 = QPushButton('Use Profile', self.centralwidget)
+        button2 = QPushButton('Use Profile', self.actionTab)
         button2.clicked.connect(self.save_profile_by_credentials)
 
         # Add buttons to layout
@@ -431,7 +508,7 @@ class Ui_MainWindow(object):
 
     def show_error_dialog(self, err_msg):
         # Create an error message box
-        error_dialog = QMessageBox(self.centralwidget)
+        error_dialog = QMessageBox(self.actionTab)
         error_dialog.setIcon(QMessageBox.Critical)
         error_dialog.setWindowTitle('Error')
         error_dialog.setText(err_msg)
@@ -897,30 +974,6 @@ class Ui_MainWindow(object):
         except Exception as error:
             print(error)
 
-    def import_config_from_file(self):
-        try:
-            # Open file Dialog
-            file_name, _ = QFileDialog.getOpenFileName(None, "Open File", "", "All Files (*);;Text Files (*.txt)")
-            
-            # Read file and import to data table
-            if file_name:
-
-                file = QFile(file_name)
-
-                if file.open(QFile.ReadOnly | QFile.Text):
-                    stream = QTextStream(file)
-                    config_json_content = stream.readAll()
-                    parsed_config_json = json.loads(config_json_content)
-
-                    self.update_config_days(config_json=parsed_config_json)
-                    
-                    file.close()
-                else:
-                    print(f"Error opening file: {file.errorString()}")
-        except Exception as error:
-            print(error)
-
-
     def update_config_days(self, config_json):
         i = 0
 
@@ -938,14 +991,20 @@ class Ui_MainWindow(object):
         return False
     
 
-    def feed_accounts(self):
-        selected_config_day = self.configDays.currentText()
+    def interact_tiktok(self):
+        # selected_config_day = self.configDays.currentText()
 
 
-        if len(selected_config_day) == 0:
-            self.show_error_dialog(err_msg="You have not added the config yet!")
-        else:
-            print('config_day:', selected_config_day)
+        # if len(selected_config_day) == 0:
+            # self.show_error_dialog(err_msg="You have not added the config yet!")
+        # else:
+            # print('config_day:', selected_config_day)
+        
+        if self.tableWidget.rowCount() == 0:
+            return self.show_error_dialog(err_msg="Chưa có tài khoản nào được chọn!")
+            
+        
+        return
 
     
     def convert_data_to_dict(self):
@@ -1258,8 +1317,6 @@ class Ui_MainWindow(object):
         # except Exception as e:
         #     print(f"Error loading JSON file: {e}")
 
-    
-
     def onAccountsTextChanged(self, text):
 
         account_lines = text.splitlines()
@@ -1270,6 +1327,27 @@ class Ui_MainWindow(object):
 
         if len(processed_accounts) > 0:
             self.add_accounts_to_temp_table(processed_accounts)
+
+    def t3_saveConfig(self):
+        print('t3_saveConfig function called!')
+        live_src_text = self.t3LiveSrclineEdit.text()
+        work_time_text = self.t3WorkTimelineEdit.text()
+        if len(live_src_text) <= 0:
+            return self.show_error_dialog(err_msg='Vui lòng nhập "Livestream (nguồn)".')
+        if live_src_text[0] != "@":
+            return self.show_error_dialog(err_msg='"Livestream (nguồn)" không đúng định dạng (@id), hãy thử lại!')
+        if len(work_time_text) <= 0:
+            return self.show_error_dialog(err_msg='Vui lòng nhập "Work time".')
+
+        self.t3LiveStatusLineEdit.setText("Đang kết nối tới livestream...")
+
+
+        tiktok_socket_worker = TiktokSocketWorker(live_id="baraboy1122")
+        tiktok_socket_worker.signals.result.connect(self.changeLiveConnectionStatus)
+
+    def changeLiveConnectionStatus(self, msg):
+        print('msg', msg)
+        self.t3LiveStatusLineEdit.setText(msg)
 
 
 if __name__ == "__main__":
