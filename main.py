@@ -76,11 +76,16 @@ class Ui_MainWindow(object):
         self.base_url = "https://traodoisub.com"
 
         # New
-        # self.threadpool = QThreadPool()
-        self.threadpool = QThreadPool()
+        # threadpool_1 to make a connection to a Livestream
+        self.threadpool_1 = QThreadPool()
         # Set the maximum number of threads (workers)
-        self.threadpool.setMaxThreadCount(4)
-        print("Multithreading with maximum %d threads" % self.threadpool.maxThreadCount())
+        self.threadpool_1.setMaxThreadCount(1)
+
+        # threadpool_2 to do works
+        self.threadpool_2 = QThreadPool()
+        # Set the maximum number of threads (workers)
+        self.threadpool_2.setMaxThreadCount(4)
+        print("Multithreading with maximum %d threads" % self.threadpool_2.maxThreadCount())
 
         # New
         self.check_mark_img = './images/check-mark-16.jpg'
@@ -348,25 +353,35 @@ class Ui_MainWindow(object):
         self.t3LiveStatusLineEdit.setGeometry(QtCore.QRect(448, 30, 300, 20))
         self.t3LiveStatusLineEdit.setObjectName("t3WorkTimelineEdit")
         self.t3LiveStatusLineEdit.setEnabled(False)
+        self.t3EditConfigBtn = QtWidgets.QPushButton(self.tab_3)
+        self.t3EditConfigBtn.setGeometry(QtCore.QRect(820, 30, 80, 23))
+        self.t3EditConfigBtn.setObjectName("t3EditConfigBtn")
         self.t3SaveConfigBtn = QtWidgets.QPushButton(self.tab_3)
         self.t3SaveConfigBtn.setGeometry(QtCore.QRect(900, 30, 51, 23))
         self.t3SaveConfigBtn.setObjectName("t3SaveConfigBtn")
         self.t3tableWidget = QtWidgets.QTableWidget(self.tab_3)
         self.t3tableWidget.setGeometry(QtCore.QRect(10, 68, 941, 680))
         self.t3tableWidget.setObjectName("t3tableWidget")
-        self.t3tableWidget.setColumnCount(3)
-        self.t3tableWidget.setRowCount(0)
+        self.t3tableWidget.setColumnCount(4)
+        self.t3tableWidget.setRowCount(26)
         item = QtWidgets.QTableWidgetItem()
         self.t3tableWidget.setHorizontalHeaderItem(0, item)
         item = QtWidgets.QTableWidgetItem()
         self.t3tableWidget.setHorizontalHeaderItem(1, item)
         item = QtWidgets.QTableWidgetItem()
         self.t3tableWidget.setHorizontalHeaderItem(2, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.t3tableWidget.setHorizontalHeaderItem(3, item)
         self.t3tableWidget.setColumnWidth(0, 200)
         self.t3tableWidget.setColumnWidth(1, 200)
-        self.t3tableWidget.setColumnWidth(2, 523)
+        self.t3tableWidget.setColumnWidth(2, 120)
+        self.t3tableWidget.setColumnWidth(3, 379)
 
         self.t3SaveConfigBtn.clicked.connect(self.t3_saveConfig)
+        self.t3EditConfigBtn.clicked.connect(self.t3_editConfig)
+
+        self.t3EditConfigBtn.setEnabled(False)
+
 
         self.tabWidget.addTab(self.tab_3, "")
 
@@ -462,15 +477,18 @@ class Ui_MainWindow(object):
         # TAB 3 - INTERACTIONS
         self.t3LiveSrcLabel.setText(_translate("MainWindow", "Livestream (nguồn):"))
         self.t3WorkTimeLabel.setText(_translate("MainWindow", "Work time (phút):"))
-        self.t3LiveStatusLabel.setText(_translate("MainWindow", "Trạng thái: chưa kết nối"))
+        self.t3LiveStatusLabel.setText(_translate("MainWindow", "Trạng thái: chưa kết nối tới Livestream nào"))
         self.t3WorkTimelineEdit.setValidator(QIntValidator(1, 60))
         self.t3LiveStatusLineEdit.setText("Chưa kết nối!")
         self.t3SaveConfigBtn.setText(_translate("MainWindow", "Lưu"))
+        self.t3EditConfigBtn.setText(_translate("MainWindow", "Chỉnh sửa"))
         item = self.t3tableWidget.horizontalHeaderItem(0)
-        item.setText(_translate("MainWindow", "Started time"))
+        item.setText(_translate("MainWindow", "Account"))
         item = self.t3tableWidget.horizontalHeaderItem(1)
-        item.setText(_translate("MainWindow", "Interaction quantity"))
+        item.setText(_translate("MainWindow", "Started time"))
         item = self.t3tableWidget.horizontalHeaderItem(2)
+        item.setText(_translate("MainWindow", "Interaction quantity"))
+        item = self.t3tableWidget.horizontalHeaderItem(3)
         item.setText(_translate("MainWindow", "Status"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("MainWindow", "Tương tác"))
 
@@ -580,7 +598,7 @@ class Ui_MainWindow(object):
                 tiktok_worker.signals.cookie.connect(lambda cookie, row=row_i: self.change_cookie(cookie, row))
 
                 # Execute the worker in the thread pool
-                self.threadpool.start(tiktok_worker)
+                self.threadpool_2.start(tiktok_worker)
 
             
     def thread_started(self):
@@ -674,7 +692,7 @@ class Ui_MainWindow(object):
             facebook_worker.signals.cookie.connect(lambda cookie, row=row_index: self.change_cookie(cookie, row))
 
             # Execute the worker in the thread pool
-            self.threadpool.start(facebook_worker)
+            self.threadpool_2.start(facebook_worker)
 
         except Exception as error:
             tb_info = traceback.format_exc()
@@ -707,7 +725,7 @@ class Ui_MainWindow(object):
             facebook_worker.signals.result.connect(lambda result: self.display_result(result, row))
             facebook_worker.signals.error.connect(lambda error: self.display_error(error, row))
             # Execute the worker in the thread pool
-            self.threadpool.start(facebook_worker)
+            self.threadpool_2.start(facebook_worker)
     
     def display_result(self, result, row):
         print('result:', result)
@@ -1272,6 +1290,15 @@ class Ui_MainWindow(object):
 
             print(self.accounts)
 
+    
+    def show_confirm_dialog(self, question_text: str) -> int:
+        # self.widget.hide()
+        confirmation = QMessageBox.question(None, 'Confirmation', question_text, QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+
+        if confirmation == QMessageBox.Yes:
+            return 1
+        else:
+            return 0
 
     def show_confirm_remove_category(self):
         self.widget.hide()
@@ -1329,28 +1356,57 @@ class Ui_MainWindow(object):
             self.add_accounts_to_temp_table(processed_accounts)
 
     def t3_saveConfig(self):
-        print('t3_saveConfig function called!')
-        live_src_text = self.t3LiveSrclineEdit.text()
+        live_src = self.t3LiveSrclineEdit.text()
         work_time_text = self.t3WorkTimelineEdit.text()
-        if len(live_src_text) <= 0:
+        self.t3LiveSrclineEdit.setEnabled(False)
+        self.t3WorkTimelineEdit.setEnabled(False)
+        if len(live_src) <= 0:
             return self.show_error_dialog(err_msg='Vui lòng nhập "Livestream (nguồn)".')
-        if live_src_text[0] != "@":
+        if live_src[0] != "@":
             return self.show_error_dialog(err_msg='"Livestream (nguồn)" không đúng định dạng (@id), hãy thử lại!')
         if len(work_time_text) <= 0:
             return self.show_error_dialog(err_msg='Vui lòng nhập "Work time".')
 
-        self.t3LiveStatusLineEdit.setText("Đang kết nối tới livestream...")
-
-
-        tiktok_socket_worker = TiktokSocketWorker(live_id="@lphung2712")
-        tiktok_socket_worker.signals.result.connect(self.changeLiveConnectionStatus)
+        self.tiktok_socket_worker = TiktokSocketWorker(live_id=live_src)
+        self.tiktok_socket_worker.signals.con_status.connect(self.changeEditConfigStatus)
+        self.tiktok_socket_worker.signals.result.connect(self.changeLiveConnectionStatus)
+        self.tiktok_socket_worker.signals.error.connect(self.showLiveConnectionError)
+        
 
         # Execute the worker in the thread pool
-        self.threadpool.start(tiktok_socket_worker)
+        self.threadpool_1.start(self.tiktok_socket_worker)
+
+        
+
+    def t3_editConfig(self):
+        confirm_status: int = self.show_confirm_dialog(question_text="Chỉnh sửa Config sẽ ngắt kết nối với Livestream hiện tại, bạn có chắc?")
+        if confirm_status == 1:
+            print('Thread counts before stop:', self.threadpool_1.activeThreadCount())
+            self.tiktok_socket_worker.stop()
+            time.sleep(5)
+            print('Thread counts after stop:', self.threadpool_1.activeThreadCount())
+        elif confirm_status == 0:
+            print("You confirmed no!") 
+
+
+    def changeEditConfigStatus(self, live_status):
+        if live_status == 1:
+            self.t3SaveConfigBtn.setEnabled(False)
+            self.t3EditConfigBtn.setEnabled(True)
+            self.t3LiveSrclineEdit.setEnabled(False)
+            self.t3WorkTimelineEdit.setEnabled(False)
+        elif live_status == 0:
+            self.t3SaveConfigBtn.setEnabled(True)
+            self.t3EditConfigBtn.setEnabled(False)
+            self.t3LiveSrclineEdit.setEnabled(True)
+            self.t3WorkTimelineEdit.setEnabled(True)
 
     def changeLiveConnectionStatus(self, msg):
-        print('msg', msg)
         self.t3LiveStatusLineEdit.setText(msg)
+    
+    def showLiveConnectionError(self, err_msg):
+        print(err_msg)
+        # self.show_error_dialog(err_msg=err_msg)
 
 
 if __name__ == "__main__":
