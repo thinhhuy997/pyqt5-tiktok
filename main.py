@@ -639,13 +639,13 @@ class Ui_MainWindow(object):
             title_action.setEnabled(False)
 
             # Add actions to the context menu
-            action_save_profile = QAction("Test profile", self.tableWidget)
+            # action_save_profile = QAction("Test profile", self.tableWidget)
 
             # Connect actions to slots (you can implement your own slots)
-            action_save_profile.triggered.connect(lambda: self.test_profile(selected_rows))
+            # action_save_profile.triggered.connect(lambda: self.test_profile(selected_rows))
 
             # Add actions to the context menu
-            action_remove_accounts = QAction("Chuyển tài khoản")
+            action_remove_accounts = QAction("")
 
             # Creating a submenu under the "File" menu
             sub_menu = QMenu('Open Recent')
@@ -656,8 +656,8 @@ class Ui_MainWindow(object):
             sub_menu.addAction('File 3')
 
             # Add actions to the context menu
-            context_menu.addAction(action_save_profile)
-            context_menu.addAction(action_remove_accounts)
+            # context_menu.addAction(action_save_profile)
+            context_menu.addMenu(sub_menu)
 
             # Show the context menu at the global position
             context_menu.exec_(global_pos)
