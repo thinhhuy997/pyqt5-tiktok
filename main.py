@@ -626,8 +626,8 @@ class Ui_MainWindow(object):
     def showContextMenu(self, pos):
         selected_rows = set(index.row() for index in self.tableWidget.selectionModel().selectedRows())
 
-        def create_action(selected_category):
-            return partial(self.remove_account, selected_rows, selected_category)
+        def create_action(from_cate, to_cate):
+            return partial(self.remove_account, selected_rows, from_cate, to_cate)
 
         if len(selected_rows) > 0:
             # Convert the widget coordinates to global coordinates
@@ -660,12 +660,17 @@ class Ui_MainWindow(object):
 
             if self.category.count() > 0:
                 category_arr = [self.category.itemText(i) for i in range(self.category.count())]
+                category_arr.pop(0) # remove category "All category" from category list
+                for i, item in enumerate(category_arr):
+                    if item == self.category.currentText():
+                        category_arr.pop(i) # remove current category from category list
                 action_dict = {}
-                for i in range(1, len(category_arr)):
+                for i in range(len(category_arr)):
                     var_name = f"action_{category_arr[i]}"
-                    selected_category = category_arr[i]
+                    from_cate = self.category.currentText()
+                    to_cate = category_arr[i]
                     action_dict[var_name] = QAction(category_arr[i])
-                    action_dict[var_name].triggered.connect(create_action(selected_category))
+                    action_dict[var_name].triggered.connect(create_action(from_cate, to_cate))
                     removing_account_menu.addAction(action_dict[var_name])
 
 
@@ -683,12 +688,73 @@ class Ui_MainWindow(object):
 
     
 
-    def remove_account(self, selected_rows, selected_category):
+    def remove_account(self, selected_rows, from_cate, to_cate):
         removed_accounts = selected_rows
-        confirmed_status = self.show_confirm_dialog(f"Bạn có chắc muốn chuyển {len(removed_accounts)} tài khoản sang category '{selected_category}' hay không?")
+        confirmed_status = self.show_confirm_dialog(f"Bạn có chắc muốn chuyển {len(removed_accounts)} tài khoản từ '{from_cate}' sang '{to_cate}' hay không?")
         if confirmed_status == 1:
-            print(f"Bạn đã chuyển thành công {len(removed_accounts)} tài khoản sang category '{selected_category}' thành công!")
+            # print(f"Bạn đã chuyển thành công {len(removed_accounts)} tài khoản từ '{from_cate}' sang '{to_cate}' thành công!")
 
+            
+
+            keys = list(self.accounts[from_cate].keys())
+
+            dict1 = {}
+            dict2 = self.accounts[to_cate]
+            for row in selected_rows:
+                key = keys[row]
+                dict1[key] = self.accounts[from_cate][key]
+            dup_count = self.count_duplicate_keys(dict1, dict2)
+
+            if dup_count > 0: # There are duplicate elements
+                overwrite_confirm = self.show_confirm_dialog(question_text=f"Phát hiện {dup_count} tài khoản bị trùng lặp, bạn có muốn ghi đè?")
+                # If confirm is 1 then overwrite destination category
+                if overwrite_confirm == 1:
+                    for row in selected_rows:
+                        key = keys[row]
+                        popped_account = self.accounts[from_cate].pop(key)
+                        popped_account["category"] = to_cate
+                        self.accounts[to_cate][key] = popped_account
+                
+                    
+                elif overwrite_confirm == 0: #Write only new items to destination category
+                    for row in selected_rows:
+                        key = keys[row]
+                        if key not in list(dict2.keys()): # Implement only item with key do not exists in destination dict (category)
+                            popped_account = self.accounts[from_cate].pop(key)
+                            popped_account["category"] = to_cate
+                            self.accounts[to_cate][key] = popped_account
+
+                # UPDATE THE DEFAULT JSON DATA FILE AND THE TABLE DATA
+                self.add_accounts_to_table(self.accounts)
+                self.category.setCurrentText(to_cate)
+                self.saveJsonFile(self.accounts)
+
+            elif dup_count == 0: # There is no duplicate element
+                for row in selected_rows:
+                    key = keys[row]
+                    # print(self.accounts[from_cate][key])
+                    popped_account = self.accounts[from_cate].pop(key)
+                    popped_account["category"] = to_cate
+                    self.accounts[to_cate][key] = popped_account
+                
+                self.add_accounts_to_table(self.accounts)
+                self.category.setCurrentText(to_cate)
+                self.saveJsonFile(self.accounts)
+        elif confirmed_status == 0:
+            print(f"You have confirmed no!")
+            
+    def count_duplicate_keys(self, dict1, dict2):
+        # Get the sets of keys from both dictionaries
+        keys_set1 = set(dict1.keys())
+        keys_set2 = set(dict2.keys())
+
+        # Find the common keys (intersection) between the two sets
+        common_keys = keys_set1.intersection(keys_set2)
+
+        # Count the number of common keys
+        count = len(common_keys)
+
+        return count
 
 
     def test_profile(self, selected_rows):
@@ -822,34 +888,38 @@ class Ui_MainWindow(object):
         for column_index, key in enumerate(self.column_order):
 
             value = data.get(key, "")
-            category = data["category"]
-            username = data["username"]
+            # category = data["category"]
+            # username = data["username"]
             
-            if key == "username":
-                profile_id = value
+            # if key == "username":
+            #     profile_id = value
 
-            if key == "profile_status":
-                # button = QPushButton(f"Run")
-                # button.clicked.connect(lambda state, row=row_index, col=column_index: self.on_run_button_clicked(row, col))
-                # self.tableWidget.setCellWidget(row_index, column_index, button)
+            # if key == "profile_status":
+            #     # button = QPushButton(f"Run")
+            #     # button.clicked.connect(lambda state, row=row_index, col=column_index: self.on_run_button_clicked(row, col))
+            #     # self.tableWidget.setCellWidget(row_index, column_index, button)
 
-                profile_path = f"./user-profiles/{profile_id}"
-                if self.check_profiles_exists(profile_path=profile_path):
-                    item = QtWidgets.QLabel()
-                    pixmap = QPixmap(self.check_mark_img)
-                    item.setPixmap(pixmap)
-                    item.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            #     profile_path = f"./user-profiles/{profile_id}"
+            #     if self.check_profiles_exists(profile_path=profile_path):
+            #         item = QtWidgets.QLabel()
+            #         pixmap = QPixmap(self.check_mark_img)
+            #         item.setPixmap(pixmap)
+            #         item.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
 
-                    self.tableWidget.setCellWidget(row_index, column_index, item)
+            #         self.tableWidget.setCellWidget(row_index, column_index, item)
 
-                    # self.accounts[category][username]['profile_status'] = True
-                else:
-                    # self.accounts[category][username]['profile_status'] = False
-                    pass
-            else:
-                item = QtWidgets.QTableWidgetItem()
-                item.setText(_translate("MainWindow", str(value)))
-                self.tableWidget.setItem(row_index, column_index, item)
+            #         # self.accounts[category][username]['profile_status'] = True
+            #     else:
+            #         # self.accounts[category][username]['profile_status'] = False
+            #         pass
+            # else:
+                # item = QtWidgets.QTableWidgetItem()
+                # item.setText(_translate("MainWindow", str(value)))
+                # self.tableWidget.setItem(row_index, column_index, item)
+            
+            item = QtWidgets.QTableWidgetItem()
+            item.setText(_translate("MainWindow", str(value)))
+            self.tableWidget.setItem(row_index, column_index, item)
 
 
             

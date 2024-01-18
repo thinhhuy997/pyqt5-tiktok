@@ -1,27 +1,9 @@
 {
     "All category": {
-        "ngantruc540928": {
-            "username": "ngantruc540928",
-            "password": "@K4S7KLonZmma",
-            "": "5AhDJEu6HO",
-            "category": "All category"
-        },
-        "hoaly376977": {
-            "username": "hoaly376977",
-            "password": "@K4CzCOMxMN2R",
-            "": "7FFHEAf06t",
-            "category": "All category"
-        },
         "huyenthoai592223": {
             "username": "huyenthoai592223",
             "password": "@K4GGBkMEiKEu",
             "": "7G9Q6ZHqHk",
-            "category": "All category"
-        },
-        "thuyvy349879": {
-            "username": "thuyvy349879",
-            "password": "@K4uOO1BRkRzj",
-            "": "0DWSXylxDC",
             "category": "All category"
         },
         "thuongthuong154527": {
@@ -42,39 +24,54 @@
             "": "8wZEp6Nmgm",
             "category": "All category"
         },
-        "baotran944600": {
-            "username": "baotran944600",
-            "password": "@K4S4J84RmxrZ",
-            "": "3OrW53YfwM",
-            "category": "All category"
-        },
         "thuyngoc325850": {
             "username": "thuyngoc325850",
             "password": "@K4DWiMaVRak0",
             "": "4jKu0I5KnU",
             "category": "All category"
-        },
-        "quynhhuong902169": {
-            "username": "quynhhuong902169",
-            "password": "@K4vmTvnQ5X0q",
-            "": "6xr7qVroyL",
-            "category": "All category"
         }
     },
-    "1": {
-        "ngantruc540928": {
-            "username": "ngantruc540928",
-            "password": "@K4S7KLonZmma",
-            "": "5AhDJEu6HO",
-            "category": "All category"
-        }
-    },
+    "1": {},
     "2": {
         "hoaly376977": {
             "username": "hoaly376977",
             "password": "@K4CzCOMxMN2R",
-            "email": "astridvallely1456@hotmail.com",
-            "email_password": "7FFHEAf06t",
+            "email": "new@hotmail.com",
+            "category": "2"
+        },
+        "baotran944600": {
+            "username": "baotran944600",
+            "password": "@K4S4J84RmxrZ",
+            "email": "duplicate@hotmail.com",
+            "email_password": "duplicate",
+            "": "3OrW53YfwM",
+            "category": "2"
+        },
+        "thuyvy349879": {
+            "username": "thuyvy349879",
+            "password": "@K4uOO1BRkRzj",
+            "": "0DWSXylxDC",
+            "category": "2"
+        },
+        "ngantruc540928": {
+            "username": "ngantruc540928",
+            "password": "@K4S7KLonZmma",
+            "email": "duplicate@hotmail.com",
+            "email_password": "duplicate",
+            "": "5AhDJEu6HO",
+            "category": "2"
+        },
+        "thuyngoc325850": {
+            "username": "thuyngoc325850",
+            "password": "@K4DWiMaVRak0",
+            "email": "new account but not duplicated",
+            "": "4jKu0I5KnU",
+            "category": "2"
+        },
+        "huyenthoai592223": {
+            "username": "huyenthoai592223",
+            "password": "@K4GGBkMEiKEu",
+            "": "7G9Q6ZHqHk",
             "category": "2"
         }
     }
