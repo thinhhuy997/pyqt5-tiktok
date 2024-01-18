@@ -645,7 +645,19 @@ class Ui_MainWindow(object):
             action_save_profile.triggered.connect(lambda: self.test_profile(selected_rows))
 
             # Add actions to the context menu
+            action_remove_accounts = QAction("Chuyển tài khoản")
+
+            # Creating a submenu under the "File" menu
+            sub_menu = QMenu('Open Recent')
+
+            # Adding actions to the submenu
+            sub_menu.addAction('File 1')
+            sub_menu.addAction('File 2')
+            sub_menu.addAction('File 3')
+
+            # Add actions to the context menu
             context_menu.addAction(action_save_profile)
+            context_menu.addAction(action_remove_accounts)
 
             # Show the context menu at the global position
             context_menu.exec_(global_pos)

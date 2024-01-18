@@ -338,6 +338,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.current_thread += 1
             if self.current_thread >= self.max_thread:
                 break
+            time.sleep(5)
+
 
     def _receive_message(self, data):
         self._update_row_by_worker(self._running_workers[data['key']])
