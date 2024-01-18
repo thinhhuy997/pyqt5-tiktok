@@ -25,6 +25,8 @@ import os
 from proxy_chrome_driver import get_chromedriver
 from tiktok_socket import TiktokSocketWorker
 
+from functools import partial
+
 class PasswordDelegate(QtWidgets.QStyledItemDelegate):
     def initStyleOption(self, option, index):
         super().initStyleOption(option, index)
@@ -397,7 +399,8 @@ class Ui_MainWindow(object):
         
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(2)
+        # Set default tab
+        self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -460,7 +463,7 @@ class Ui_MainWindow(object):
 
         # NEW
         # Load defaut data when startup
-        # self.load_default_data()
+        self.load_default_data()
 
         # RESTRANLATE FOR TAB CONFIG
         self.livestreamLabel.setText(_translate("MainWindow", "Livestream (nguồn):"))
@@ -623,6 +626,9 @@ class Ui_MainWindow(object):
     def showContextMenu(self, pos):
         selected_rows = set(index.row() for index in self.tableWidget.selectionModel().selectedRows())
 
+        def create_action(selected_category):
+            return partial(self.remove_account, selected_rows, selected_category)
+
         if len(selected_rows) > 0:
             # Convert the widget coordinates to global coordinates
             global_pos = self.tableWidget.mapToGlobal(pos)
@@ -644,23 +650,46 @@ class Ui_MainWindow(object):
             # Connect actions to slots (you can implement your own slots)
             # action_save_profile.triggered.connect(lambda: self.test_profile(selected_rows))
 
-            # Add actions to the context menu
-            action_remove_accounts = QAction("")
 
             # Creating a submenu under the "File" menu
-            sub_menu = QMenu('Open Recent')
+            removing_account_menu = QMenu('Chuyển category')
 
             # Adding actions to the submenu
-            sub_menu.addAction('File 1')
-            sub_menu.addAction('File 2')
-            sub_menu.addAction('File 3')
+            # remove_account_menu.addAction('1')
+            # remove_account_menu.addAction('2')
+
+            if self.category.count() > 0:
+                category_arr = [self.category.itemText(i) for i in range(self.category.count())]
+                action_dict = {}
+                for i in range(1, len(category_arr)):
+                    var_name = f"action_{category_arr[i]}"
+                    selected_category = category_arr[i]
+                    action_dict[var_name] = QAction(category_arr[i])
+                    action_dict[var_name].triggered.connect(create_action(selected_category))
+                    removing_account_menu.addAction(action_dict[var_name])
+
+
+
+
 
             # Add actions to the context menu
             # context_menu.addAction(action_save_profile)
-            context_menu.addMenu(sub_menu)
+            context_menu.addMenu(removing_account_menu)
 
             # Show the context menu at the global position
             context_menu.exec_(global_pos)
+
+            
+
+    
+
+    def remove_account(self, selected_rows, selected_category):
+        removed_accounts = selected_rows
+        confirmed_status = self.show_confirm_dialog(f"Bạn có chắc muốn chuyển {len(removed_accounts)} tài khoản sang category '{selected_category}' hay không?")
+        if confirmed_status == 1:
+            print(f"Bạn đã chuyển thành công {len(removed_accounts)} tài khoản sang category '{selected_category}' thành công!")
+
+
 
     def test_profile(self, selected_rows):
 
@@ -813,9 +842,10 @@ class Ui_MainWindow(object):
 
                     self.tableWidget.setCellWidget(row_index, column_index, item)
 
-                    self.accounts[category][username]['profile_status'] = True
+                    # self.accounts[category][username]['profile_status'] = True
                 else:
-                    self.accounts[category][username]['profile_status'] = False
+                    # self.accounts[category][username]['profile_status'] = False
+                    pass
             else:
                 item = QtWidgets.QTableWidgetItem()
                 item.setText(_translate("MainWindow", str(value)))
@@ -1342,19 +1372,18 @@ class Ui_MainWindow(object):
 
 
     def load_default_data(self):
-        print('Loaded default data!')
-        # Load and display the contents of the JSON file
-        # file_path = "./defaults/data.json"
-        # try:
-        #     with open(file_path, 'r') as file:
-        #         data = file.read()
-        #         json_data = json.loads(data)
-            
-        #         if 'All category' in json_data:
-        #             print("json_data['All']=", json_data['All category'])
+        file_path = "./defaults/data.json"
 
-        # except Exception as e:
-        #     print(f"Error loading JSON file: {e}")
+        with open(file_path, 'r') as file:
+            data = json.load(file)
+        self.accounts = data
+
+
+
+        self.add_accounts_to_table(self.accounts['All category'])
+        categories = list(self.accounts.keys())
+        for i in range(1, len(categories)):
+            self.category.addItem(categories[i])
 
     def onAccountsTextChanged(self, text):
 
