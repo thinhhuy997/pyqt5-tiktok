@@ -1,0 +1,3 @@
+com.ss.android.ugc.trill
+adb -s ce011711e365a00304 shell pm clear com.ss.android.ugc.trill
+adb -s ce0817182b1ae49a0b shell pm clear com.ss.android.ugc.trill
