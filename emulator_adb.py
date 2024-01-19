@@ -41,6 +41,8 @@ class Auto:
         os.system(f"adb -s {self.handle} shell pm clear {package_name}")
     def offApp(self, package_name: str) -> None:
         os.system(f"adb -s {self.handle} shell am force-stop {package_name}")
+    def swipe(self, x1, y1, x2, y2):
+        subprocess.call(f"adb -s {self.handle} shell input touchscreen swipe {x1} {y1} {x2} {y2} 1000", stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
 def GetDevices():
         devices = subprocess.check_output("adb devices")
@@ -59,7 +61,7 @@ class EmulatorWorker(threading.Thread):
         self.proxy = proxy
 
     def config_proxy(self, adb_auto: Auto) -> bool:
-        locating_img_path = "./images/proxy-app-1.png"
+        locating_img_path = "./images/proxy-college-phone-1.png"
         proxy = self.proxy.split(":")
         print("Đang tiến hành config proxy:", proxy)
 
@@ -69,106 +71,101 @@ class EmulatorWorker(threading.Thread):
                 if point > [(0,0)]:
                     adb_auto.click(point[0][0], point[0][1])
 
-                    # CHECKPOINTS
-                    start_check_time = time.time()
-                    while time.time() - start_check_time < 30:
-                        cancel_point_1 = adb_auto.find("./images/cancel_button.png")
-                        if cancel_point_1 > [(0, 0)]:
-                            adb_auto.click(cancel_point_1[0][0], cancel_point_1[0][1])
-                            time.sleep(0.5)
-                            cancel_point_2 = adb_auto.find("./images/cancel_button.png")
-                            adb_auto.click(cancel_point_2[0][0], cancel_point_2[0][1])
-                            time.sleep(0.5)
-                            oke_point_1 = adb_auto.find("./images/proxy-app-ok-button.png")
-                            adb_auto.click(oke_point_1[0][0], oke_point_1[0][1])
-                            break
-                        else:
-                            time.sleep(0.5)
-
-
                     # SET UP PROXY
                     start_check_time = time.time()
-                    while time.time() - start_check_time < 30:
-                        point_2 = adb_auto.find("./images/proxy-host-label.png")
+                    while time.time() - start_check_time < 10:
+                        point_2 = adb_auto.find("./images/proxy-host-label-1.png")
                         if point_2 > [(0, 0)]:
                             break
                         else:
                             time.sleep(0.5)
-
-                    point_3 = adb_auto.find("./images/proxy-port-label.png")
-                    point_4 = adb_auto.find("./images/proxy-username-label.png")
-                    point_5 = adb_auto.find("./images/proxy-password-label.png")
-                    point_6 = adb_auto.find("./images/start-proxy.png")
+                    point_3 = adb_auto.find("./images/proxy-port-label-1.png")
+                    point_4 = adb_auto.find("./images/proxy-username-label-1.png")
+                    point_5 = adb_auto.find("./images/proxy-password-label-1.png")
+                    point_6 = adb_auto.find("./images/start-proxy-button-1.png")
                     if point_2 > [(0,0)]:
-                        adb_auto.click(point_2[0][0]+350, point_2[0][1])
-                        # adb_auto.click(point_2[0][0]+350, point_2[0][1])
+                        adb_auto.click(point_2[0][0]+1000, point_2[0][1])
                         adb_auto.sendText(proxy[0])
-                        time.sleep(0.5)
                     if point_3 > [(0,0)]:
-                        adb_auto.click(point_3[0][0]+348, point_3[0][1])
-                        # adb_auto.click(point_3[0][0]+348, point_3[0][1])
+                        adb_auto.click(point_3[0][0]+1000, point_3[0][1])
                         adb_auto.sendText(proxy[1])
-                        time.sleep(0.5)
                     if point_4 > [(0,0)]:
-                        adb_auto.click(point_4[0][0]+348, point_4[0][1])
-                        # adb_auto.click(point_4[0][0]+348, point_4[0][1])
+                        adb_auto.click(point_4[0][0]+1000, point_4[0][1])
                         adb_auto.sendText(proxy[2])
-                        time.sleep(0.5)
                     if point_5 > [(0,0)]:
-                        adb_auto.click(point_5[0][0]+348, point_5[0][1])
-                        # adb_auto.click(point_5[0][0]+348, point_5[0][1])
+                        adb_auto.click(point_5[0][0]+1000, point_5[0][1])
                         adb_auto.sendText(proxy[3])
-                    
+
+                    if point_6 > [(0,0)]:
+                        adb_auto.click(point_6[0][0], point_6[0][1])
+                        
                     start_check_time = time.time()
                     while time.time() - start_check_time < 30:
-                        if point_6 > [(0,0)]:
-                            adb_auto.click(point_6[0][0], point_6[0][1])
-                            point_7 = adb_auto.find("./images/start-proxy-service.png")
+                        try:
+                            point_7 = adb_auto.find("./images/connection-request-ok-button-1.png")
                             if point_7 > [(0,0)]:
                                 adb_auto.click(point_7[0][0], point_7[0][1])
-                                
-                                # time.sleep(0.5)
-                                # # Oke button
-                                # point_8 = adb_auto.find("./images/proxy-confirm-ok-2.png")
-                                # if point_8 > [(0, 0)]:
-                                #     adb_auto.click(point_8[0][0], point_8[0][1])
+                                time.sleep(1)
+                            
+                            point_9 = adb_auto.find("./images/stop-proxy-button-1.png")
+                            if point_9 > [(0, 0)]:
+                                return True #Set up proxy successfully!
 
-                                p9_start_time = time.time()
-                                while time.time() - p9_start_time < 20:
-                                    point_9 = adb_auto.find("./images/start-proxy-service-2.png")
-                                    if point_9 > [(0, 0)]:
-                                        adb_auto.click(point_9[0][0], point_9[0][1])
-                                        time.sleep(2)
-                                    else:
-                                        time.sleep(0.5)
+                        except:
+                            print("Element not found!")
+                        time.sleep(2)
 
-                                p10_start_time = time.time()
-                                while time.time() - p10_start_time < 30:
-                                    point_10 = adb_auto.find("./images/proxy-config-success.png")
-                                    print(point_10)
-                                    if point_10 > [(0, 0)]:
-                                        print(f'Config proxy "{self.proxy}" thành công')
-                                        return True
-                                    else:
-                                        time.sleep(0.5)
-                        else:
-                            time.sleep(0.5)
-                return False
+                return False #Set up proxy Failed!
             except Exception as err:
                 print("Lỗi khi config proxy:", err)
                 traceback.print_exc()
-                return False
+                return False #Set up proxy Failed!
 
 
-    def startApp(self, adb_auto: Auto, app_img_path: str) -> None:
-        while True:
-            try:
-                img_point = adb_auto.find(app_img_path)
-                if img_point > [(0,0)]:
-                    adb_auto.click(img_point[0][0], img_point[0][1])
+    def interactTiktok(self, adb_auto: Auto, app_img_path: str) -> None:
+        app_started_check = False
+        start_check_time = time.time()
+        while time.time() - start_check_time < 10:
+            point_1 = adb_auto.find(app_img_path)
+            if point_1 > [(0,0)]:
+                print('clicked point_1')
+                adb_auto.click(point_1[0][0], point_1[0][1])
+                app_started_check = True
                 break
-            except Exception as e:
-                print("Err", e)
+
+        if app_started_check:
+            start_check_time = time.time()
+            while time.time() - start_check_time < 20:
+                point_2 = adb_auto.find("./images/tiktok-agree-and-continue.png")
+                if point_2 > [(0, 0)]:
+                    adb_auto.click(point_2[0][0], point_2[0][1])
+                    break
+            
+            start_check_time = time.time()
+            while time.time() - start_check_time < 10:
+                point_3 = adb_auto.find("./images/tiktok-skip-interest.png")
+                if point_3 > [(0, 0)]:
+                    adb_auto.click(point_3[0][0], point_3[0][1])
+                    break
+
+            start_check_time = time.time()
+            while time.time() - start_check_time < 10:
+                point_4 = adb_auto.find("./images/tiktok-start-watching.png")
+                if point_4 > [(0, 0)]:
+                    adb_auto.click(point_4[0][0], point_4[0][1])
+                    break
+
+            start_check_time = time.time()
+            while time.time() - start_check_time < 10:
+                point_5 = adb_auto.find("./images/tiktok-swipe-up-for-more.png")
+                if point_5 > [(0, 0)]:
+                    print('Swipped up')
+                    adb_auto.swipe(768.6,1810.5, 768.6,600.8)
+                    break
+            
+            print('ko vao while')
+                
+
 
 
     def run(self):
@@ -178,28 +175,27 @@ class EmulatorWorker(threading.Thread):
 
             print('--------------------')
             print(f"Device {self.device} started")
-            # for i in range(1):
-            #     # Config proxy for the emulator
-            #     proxy_config_check = self.config_proxy(adb_auto)
+            for i in range(1):
+                # Config proxy for the emulator
+                proxy_config_check = self.config_proxy(adb_auto)
 
+                adb_auto.clearApp("com.cell47.College_Proxy")
+                time.sleep(2)
 
-            #     if proxy_config_check:
-            #         self.startApp(adb_auto, )
-
-
-            #     print('proxy_config_check', proxy_config_check)
-            #     adb_auto.offApp("com.android.browser")
-            #     adb_auto.clearApp("com.cell47.College_Proxy")
-            #     time.sleep(3)
-
-            self.startApp(adb_auto=adb_auto, app_img_path=tiktok_img_path)
-                
+                # proxy_config_check = True
+                # if proxy_config_check:
+                #     self.interactTiktok(adb_auto, tiktok_img_path)
+                # time.sleep(100)
+                # adb_auto.clearApp("com.ss.android.ugc.trill")
+ 
         except Exception as e:
             print(e)
+
+
     
-def start_worker(worker_index, proxy):
+def start_worker(device_name, proxy):
     time.sleep(0.5)
-    device_name = GetDevices()[worker_index]    
+    # device_name = GetDevices()[worker_index]
     worker = EmulatorWorker(device_name, proxy)
     worker.run()
 

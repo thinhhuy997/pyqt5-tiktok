@@ -26,6 +26,8 @@ from proxy_chrome_driver import get_chromedriver
 from tiktok_socket import TiktokSocketWorker
 
 from functools import partial
+from adb_ultils import ADB
+from emulator_adb import start_worker
 
 class PasswordDelegate(QtWidgets.QStyledItemDelegate):
     def initStyleOption(self, option, index):
@@ -98,6 +100,26 @@ class Ui_MainWindow(object):
         self.running_threads = 0
         self.waiting_threads = 0
         self.completed_threads = 0
+
+        # NEW 19 - 1 - 2024
+        # self.phone_device = [
+        #     {
+        #         "name": "ce011711e365a00304",
+        #         "status": "free"
+        #     },
+        #     {
+        #         "name": "ce011711e365a00306",
+        #         "status": "busy"
+        #     }
+	    # ]
+
+        self.phone_devices = []
+        devices = ADB.get_devices()
+        for device in devices:
+            temp = {}
+            temp["name"] = device
+            temp["status"] = "free" # Initilize status free
+            self.phone_devices.append(temp)
 
 
     def setupUi(self, MainWindow):
@@ -338,33 +360,47 @@ class Ui_MainWindow(object):
         self.tab_3 = QtWidgets.QWidget()
         self.tab_3.setObjectName("tab_3")
         self.t3LiveSrcLabel = QtWidgets.QLabel(self.tab_3)
-        self.t3LiveSrcLabel.setGeometry(QtCore.QRect(10, 30, 100, 16))
+        self.t3LiveSrcLabel.setGeometry(QtCore.QRect(10, 20, 100, 16))
         self.t3LiveSrclineEdit = QtWidgets.QLineEdit(self.tab_3)
-        self.t3LiveSrclineEdit.setGeometry(QtCore.QRect(110, 30, 113, 20))
+        self.t3LiveSrclineEdit.setGeometry(QtCore.QRect(110, 20, 113, 20))
         self.t3LiveSrclineEdit.setObjectName("lineEdit")
         self.t3WorkTimeLabel = QtWidgets.QLabel(self.tab_3)
-        self.t3WorkTimeLabel.setGeometry(QtCore.QRect(240, 30, 86, 16))
+        self.t3WorkTimeLabel.setGeometry(QtCore.QRect(240, 20, 86, 16))
         self.t3WorkTimeLabel.setObjectName("t3WorkTimeLabel")
         self.t3WorkTimelineEdit = QtWidgets.QLineEdit(self.tab_3)
-        self.t3WorkTimelineEdit.setGeometry(QtCore.QRect(328, 30, 39, 20))
+        self.t3WorkTimelineEdit.setGeometry(QtCore.QRect(328, 20, 39, 20))
         self.t3WorkTimelineEdit.setObjectName("t3WorkTimelineEdit")
         self.t3LiveStatusLabel = QtWidgets.QLabel(self.tab_3)
-        self.t3LiveStatusLabel.setGeometry(QtCore.QRect(390, 30, 55, 16))
+        self.t3LiveStatusLabel.setGeometry(QtCore.QRect(390, 20, 55, 16))
         self.t3LiveStatusLabel.setObjectName("t3LiveStatusLabel")
         self.t3LiveStatusLineEdit = QtWidgets.QLineEdit(self.tab_3)
-        self.t3LiveStatusLineEdit.setGeometry(QtCore.QRect(448, 30, 300, 20))
+        self.t3LiveStatusLineEdit.setGeometry(QtCore.QRect(448, 20, 300, 20))
         self.t3LiveStatusLineEdit.setObjectName("t3WorkTimelineEdit")
         self.t3LiveStatusLineEdit.setEnabled(False)
         self.t3EditConfigBtn = QtWidgets.QPushButton(self.tab_3)
-        self.t3EditConfigBtn.setGeometry(QtCore.QRect(820, 30, 80, 23))
+        self.t3EditConfigBtn.setGeometry(QtCore.QRect(820, 20, 80, 23))
         self.t3EditConfigBtn.setObjectName("t3EditConfigBtn")
         self.t3SaveConfigBtn = QtWidgets.QPushButton(self.tab_3)
-        self.t3SaveConfigBtn.setGeometry(QtCore.QRect(900, 30, 51, 23))
+        self.t3SaveConfigBtn.setGeometry(QtCore.QRect(900, 20, 51, 23))
         self.t3SaveConfigBtn.setObjectName("t3SaveConfigBtn")
+
+        # T3 - Label "File:""
+        self.t3_filterLabel = QtWidgets.QLabel(self.tab_3)
+        self.t3_filterLabel.setGeometry(QtCore.QRect(10, 55, 20, 16))
+        self.t3_filterLabel.setObjectName("t3_filterLabel")
+
+        # T3 - Combobox "category"
+        self.t3_category = QtWidgets.QComboBox(self.tab_3)
+        self.t3_category.setGeometry(QtCore.QRect(40, 54, 120, 21))
+        self.t3_category.setObjectName("t3_category")
+        self.t3_category.addItem("All category")
+
+        self.t3_category.currentTextChanged.connect(self.update_table)
+
         self.t3tableWidget = QtWidgets.QTableWidget(self.tab_3)
-        self.t3tableWidget.setGeometry(QtCore.QRect(10, 68, 941, 680))
+        self.t3tableWidget.setGeometry(QtCore.QRect(10, 88, 941, 680))
         self.t3tableWidget.setObjectName("t3tableWidget")
-        self.t3tableWidget.setColumnCount(4)
+        self.t3tableWidget.setColumnCount(5)
         self.t3tableWidget.setRowCount(26)
         item = QtWidgets.QTableWidgetItem()
         self.t3tableWidget.setHorizontalHeaderItem(0, item)
@@ -374,10 +410,13 @@ class Ui_MainWindow(object):
         self.t3tableWidget.setHorizontalHeaderItem(2, item)
         item = QtWidgets.QTableWidgetItem()
         self.t3tableWidget.setHorizontalHeaderItem(3, item)
-        self.t3tableWidget.setColumnWidth(0, 200)
-        self.t3tableWidget.setColumnWidth(1, 200)
+        item = QtWidgets.QTableWidgetItem()
+        self.t3tableWidget.setHorizontalHeaderItem(4, item)
+        self.t3tableWidget.setColumnWidth(0, 150)
+        self.t3tableWidget.setColumnWidth(1, 150)
         self.t3tableWidget.setColumnWidth(2, 120)
-        self.t3tableWidget.setColumnWidth(3, 379)
+        self.t3tableWidget.setColumnWidth(3, 300)
+        self.t3tableWidget.setColumnWidth(4, 200)
 
         self.t3SaveConfigBtn.clicked.connect(self.t3_saveConfig)
         self.t3EditConfigBtn.clicked.connect(self.t3_editConfig)
@@ -400,7 +439,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
         # Set default tab
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -485,6 +524,7 @@ class Ui_MainWindow(object):
         self.t3LiveStatusLineEdit.setText("Chưa kết nối!")
         self.t3SaveConfigBtn.setText(_translate("MainWindow", "Lưu"))
         self.t3EditConfigBtn.setText(_translate("MainWindow", "Chỉnh sửa"))
+        self.t3_filterLabel.setText(_translate("MainWindow", "Lọc:"))
         item = self.t3tableWidget.horizontalHeaderItem(0)
         item.setText(_translate("MainWindow", "Account"))
         item = self.t3tableWidget.horizontalHeaderItem(1)
@@ -493,6 +533,8 @@ class Ui_MainWindow(object):
         item.setText(_translate("MainWindow", "Interaction quantity"))
         item = self.t3tableWidget.horizontalHeaderItem(3)
         item.setText(_translate("MainWindow", "Status"))
+        item_temp = self.t3tableWidget.horizontalHeaderItem(4)
+        item_temp.setText(_translate("MainWindow", "Actions"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("MainWindow", "Tương tác"))
 
 
@@ -926,8 +968,6 @@ class Ui_MainWindow(object):
 
 
     def add_accounts_to_table(self, accounts: dict):
-        
-        
         self.tableWidget.setRowCount(len(accounts))
         __sortingEnabled = self.tableWidget.isSortingEnabled()
 
@@ -947,6 +987,33 @@ class Ui_MainWindow(object):
         self.tableWidget.setItemDelegateForColumn(self.column_order.index('email_password'), password_delegate)    
 
         print('Added accounts successfully!')
+    
+    def add_accounts_to_worker_table(self, accounts: dict):
+        self.t3tableWidget.setRowCount(len(accounts))
+        __sortingEnabled = self.tableWidget.isSortingEnabled()
+
+        # Positions of field columns in the data table
+        # column_order = ["tds_username", "tds_pass", "face_uid", "face_pass", "cookie", "token", "proxy", "user_agent", "tds_coins",  "status",  "action"]
+
+        for row_index, account_data in enumerate(accounts.values()):
+            self.add_row_to_worker_table(row_index, account_data)
+
+        self.t3tableWidget.setSortingEnabled(__sortingEnabled)
+
+    def add_row_to_worker_table(self, row_index, data):
+        _translate = QtCore.QCoreApplication.translate
+        item = QtWidgets.QTableWidgetItem()
+        item.setText(_translate("MainWindow", str(data['username'])))
+        self.t3tableWidget.setItem(row_index, 0, item)
+        # Add button to table cell
+
+        button = QPushButton("Start")
+        # setting geometry of button 
+        button.setGeometry(0, 0, 0, 0)
+        button.clicked.connect(lambda: self.start_adb_worker(row_index))
+        item = QtWidgets.QTableWidgetItem()
+        self.t3tableWidget.setCellWidget(row_index, 4, button)
+        self.t3tableWidget.setItem(row_index, 4, item)
 
     def add_accounts_to_temp_table(self, accounts: list):
         self.tempTableWidget.setRowCount(len(accounts))
@@ -1436,9 +1503,11 @@ class Ui_MainWindow(object):
 
             # Show all accounts
             self.add_accounts_to_table(all_data)
+            self.add_accounts_to_worker_table(all_data)
         else:
             # show accounts by category that them belong
             self.add_accounts_to_table(self.accounts[category])
+            self.add_accounts_to_worker_table(self.accounts[category])
 
 
     def load_default_data(self):
@@ -1449,11 +1518,17 @@ class Ui_MainWindow(object):
         self.accounts = data
 
 
+        all_data = {}
+        for account_obj in self.accounts.values():
+            all_data.update(account_obj)
 
-        self.add_accounts_to_table(self.accounts['All category'])
+        # Show all accounts
+        self.add_accounts_to_table(all_data)
+        self.add_accounts_to_worker_table(all_data)
         categories = list(self.accounts.keys())
         for i in range(1, len(categories)):
             self.category.addItem(categories[i])
+            self.t3_category.addItem(categories[i])
 
     def onAccountsTextChanged(self, text):
 
@@ -1518,6 +1593,54 @@ class Ui_MainWindow(object):
     def showLiveConnectionError(self, err_msg):
         print(err_msg)
         # self.show_error_dialog(err_msg=err_msg)
+
+    def get_all_accounts():
+        pass
+
+    def start_adb_worker(self, row_index):
+        workers = {}
+        t3_curr_category = self.t3_category.currentText()
+        if t3_curr_category == "All category":
+            for account_obj in self.accounts.values():
+                workers.update(account_obj)
+            keys = list(workers.keys())
+            worker_key = keys[row_index]
+            this_worker = workers[worker_key]
+            # print(this_worker) - {'username': 'huyenthoai592223', 'password': '@K4GGBkMEiKEu', '': '7G9Q6ZHqHk', 'category': '2'}
+        else:
+            workers = self.accounts[t3_curr_category]
+            keys = list(workers.keys())
+            worker_key = keys[row_index]
+            this_worker = workers[worker_key]
+        
+        # Temporarily unused this
+        if this_worker.get('proxy') is None:
+            self.show_error_dialog('Tài khoản này chưa có proxy, hãy thêm vào và thử lại!')
+        else:
+            print(self.phone_devices)
+            for i,device in enumerate(self.phone_devices):
+                if device['status'] == "free":
+                    chosen_device = self.phone_devices[i]
+                    self.phone_devices[i]["status"] = "busy"
+                    break
+
+            threading.Thread(target=start_worker, args=(chosen_device["name"], this_worker["proxy"])).start()
+
+            # thread_count = len(ADB.get_devices())
+            # proxies = []
+            # p_count = 0
+            # with open('./resources/proxy-101-200.txt') as f:
+                # proxies = f.read().split('\n')
+
+            # for i in range(thread_count):
+            #     worker_index = i
+            #     threading.Thread(target=start_worker, args=(worker_index, proxies[p_count])).start()
+            #     p_count += 1
+
+
+            
+
+
 
 
 if __name__ == "__main__":

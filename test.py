@@ -1,84 +1,58 @@
-import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout, QPushButton, QWidget
-from PyQt5.QtCore import QRunnable, QThreadPool, QObject, pyqtSignal, Qt
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidget, QTableWidgetItem, QPushButton, QVBoxLayout, QWidget
+from PyQt5.QtCore import Qt
 
-class MySignals(QObject):
-    resultReady = pyqtSignal(int)
 
-class MyRunnable(QRunnable):
-    def __init__(self, signals, value):
-        super(MyRunnable, self).__init__()
-        self.signals = signals
-        self.value = value
+class ButtonCellWidget(QWidget):
+    def __init__(self, parent=None):
+        super(ButtonCellWidget, self).__init__(parent)
+        self.layout = QVBoxLayout(self)
+        self.button = QPushButton()
+        self.layout.addWidget(self.button)
+        self.layout.setAlignment(self.button, Qt.AlignHCenter | Qt.AlignVCenter)
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(self.layout)
 
-    def run(self):
-        # Simulate some time-consuming task
-        import time
-        time.sleep(2)
-        
-        result = self.value * 2
 
-        # Emit the result using the custom signal
-        self.signals.resultReady.emit(result)
-
-class MyMainWindow(QMainWindow):
+class MainWindow(QMainWindow):
     def __init__(self):
-        super(MyMainWindow, self).__init__()
+        super(MainWindow, self).__init__()
+
+        self.setWindowTitle("QTableWidget with Buttons")
+        self.setGeometry(100, 100, 600, 400)
 
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
 
-        self.layout = QVBoxLayout(self.central_widget)
+        self.setup_ui()
 
-        self.label = QLabel("Result: ")
-        self.layout.addWidget(self.label)
+    def setup_ui(self):
+        layout = QVBoxLayout(self.central_widget)
 
-        self.worker_count_label = QLabel("Number of Running Workers: 0")
-        self.layout.addWidget(self.worker_count_label)
+        table_widget = QTableWidget(self)
+        table_widget.setColumnCount(2)
+        table_widget.setRowCount(3)
 
-        self.start_button = QPushButton("Start Task")
-        self.start_button.clicked.connect(self.start_task)
-        self.layout.addWidget(self.start_button)
+        # Populate the table with buttons
+        for row in range(3):
+            for col in range(2):
+                button_widget = ButtonCellWidget()
+                button_widget.button.setText(f"Button {row}-{col}")
+                button_widget.button.clicked.connect(self.button_clicked)
 
-        self.stop_button = QPushButton("Stop All Workers")
-        self.stop_button.clicked.connect(self.stop_all_workers)
-        self.layout.addWidget(self.stop_button)
+                table_widget.setCellWidget(row, col, button_widget)
+                table_widget.setItem(row, col, QTableWidgetItem())
 
-        # Set up custom signals
-        self.signals = MySignals()
+        layout.addWidget(table_widget)
 
-        # Set up thread pool
-        self.thread_pool = QThreadPool.globalInstance()
+    def button_clicked(self):
+        button = self.sender()
+        if isinstance(button, QPushButton):
+            print(f"Button clicked: {button.text()}")
 
-    def start_task(self):
-        # Create a runnable with a specific value
-        my_runnable = MyRunnable(self.signals, 5)
-
-        # Connect the custom signal to the update_label slot
-        self.signals.resultReady.connect(self.update_label)
-
-        # Queue the runnable in the thread pool
-        self.thread_pool.start(my_runnable)
-
-        # Update the number of running workers
-        self.update_worker_count()
-
-    def update_label(self, result):
-        # Update the label with the result
-        self.label.setText("Result: {}".format(result))
-
-    def update_worker_count(self):
-        # Update the label with the number of running workers
-        count = self.thread_pool.activeThreadCount()
-        self.worker_count_label.setText("Number of Running Workers: {}".format(count))
-
-    def stop_all_workers(self):
-        # Remove all workers from the thread pool
-        self.thread_pool.clear()
-        self.update_worker_count()
 
 if __name__ == "__main__":
+    import sys
     app = QApplication(sys.argv)
-    main_window = MyMainWindow()
+    main_window = MainWindow()
     main_window.show()
     sys.exit(app.exec_())
