@@ -115,11 +115,12 @@ class Ui_MainWindow(object):
 
         self.phone_devices = []
         devices = ADB.get_devices()
-        for device in devices:
-            temp = {}
-            temp["name"] = device
-            temp["status"] = "free" # Initilize status free
-            self.phone_devices.append(temp)
+        if devices is not None:
+            for device in devices:
+                temp = {}
+                temp["name"] = device
+                temp["status"] = "free" # Initilize status free
+                self.phone_devices.append(temp)
 
 
     def setupUi(self, MainWindow):
@@ -397,6 +398,19 @@ class Ui_MainWindow(object):
 
         self.t3_category.currentTextChanged.connect(self.update_table)
 
+        # T3 - Label "Connectted Devices:"
+        self.t3_connectedDevicesLabel = QtWidgets.QLabel(self.tab_3)
+        self.t3_connectedDevicesLabel.setGeometry(QtCore.QRect(768, 55, 100, 16))
+        self.t3_connectedDevicesLabel.setObjectName("t3_connectedDevicesLabel")
+        self.t3_connectedDevicesLineEdit = QtWidgets.QLineEdit(self.tab_3)
+        self.t3_connectedDevicesLineEdit.setGeometry(QtCore.QRect(868, 54, 20, 20))
+        self.t3_connectedDevicesLineEdit.setEnabled(False)
+        self.t3_reloadDevicesBtn = QtWidgets.QPushButton(self.tab_3)
+        self.t3_reloadDevicesBtn.setGeometry(QtCore.QRect(900, 54, 51, 23))
+        self.t3_reloadDevicesBtn.setObjectName("t3_reloadDevicesBtn")
+
+
+
         self.t3tableWidget = QtWidgets.QTableWidget(self.tab_3)
         self.t3tableWidget.setGeometry(QtCore.QRect(10, 88, 941, 680))
         self.t3tableWidget.setObjectName("t3tableWidget")
@@ -525,6 +539,8 @@ class Ui_MainWindow(object):
         self.t3SaveConfigBtn.setText(_translate("MainWindow", "Lưu"))
         self.t3EditConfigBtn.setText(_translate("MainWindow", "Chỉnh sửa"))
         self.t3_filterLabel.setText(_translate("MainWindow", "Lọc:"))
+        self.t3_connectedDevicesLabel.setText(_translate("MainWindow", "Connected devices:"))
+        self.t3_reloadDevicesBtn.setText(_translate("MainWindow", "Reload"))
         item = self.t3tableWidget.horizontalHeaderItem(0)
         item.setText(_translate("MainWindow", "Account"))
         item = self.t3tableWidget.horizontalHeaderItem(1)
@@ -536,6 +552,8 @@ class Ui_MainWindow(object):
         item_temp = self.t3tableWidget.horizontalHeaderItem(4)
         item_temp.setText(_translate("MainWindow", "Actions"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("MainWindow", "Tương tác"))
+
+        self.t3_connectedDevicesLineEdit.setText(str(len(self.phone_devices)))
 
 
     def open_dialog(self):
@@ -1408,33 +1426,43 @@ class Ui_MainWindow(object):
         self.dialog.exec_()
 
     def onSaveAddProxiesClicked(self, text):
-
         current_category = self.category.currentText()
+        if current_category == "All category":
 
-        proxy_lines = text.splitlines()
+            all_accounts = self.get_all_accounts()
 
-        print('proxy_lines', proxy_lines)
-        print('len', len(proxy_lines))
+            proxy_lines = text.splitlines()
+            print('proxy_lines', proxy_lines)
+            print('len', len(proxy_lines))
 
-        if len(proxy_lines) != 0:
-            count = 0
-            for account in self.accounts[current_category].values():
-                if count > len(proxy_lines) - 1:
-                    # reset count to 0
-                    count = 0
 
-                account["proxy"] = proxy_lines[count]
-                
-                # increase count
-                count += 1
+            if len(proxy_lines) != 0:
+                count = 0
+                for account in all_accounts.values():
+                    if count > len(proxy_lines) - 1:
+                        # reset count to 0
+                        count = 0
 
-                
-            self.add_accounts_to_table(self.accounts[current_category])             
 
-            print("Added proxies to accounts successfully!")
-        
-        
-        self.dialog.close()
+                    account["proxy"] = proxy_lines[count]
+
+                    # update self.accounts with proxy line
+                    belonged_category = account["category"]
+                    username = account["username"]
+                    self.accounts[belonged_category][username]["proxy"] = proxy_lines[count]
+                    
+                    # increase count
+                    count += 1
+
+                    
+                self.add_accounts_to_table(all_accounts)             
+
+                print("Added proxies to accounts successfully!")
+
+                self.saveJsonFile(self.accounts)
+            
+            
+            self.dialog.close()
 
     def toggle_category_options(self):
         if self.widget.isHidden():
@@ -1594,10 +1622,19 @@ class Ui_MainWindow(object):
         print(err_msg)
         # self.show_error_dialog(err_msg=err_msg)
 
-    def get_all_accounts():
-        pass
+    def get_all_accounts(self):
+        all_data = {}
+        for account_obj in self.accounts.values():
+            all_data.update(account_obj)
+
+        return all_data
+
 
     def start_adb_worker(self, row_index):
+        if len(self.phone_devices) == 0:
+            return self.show_error_dialog(err_msg="Không có thiết bị (phone) nào hiện đang được kết nối!")
+
+
         workers = {}
         t3_curr_category = self.t3_category.currentText()
         if t3_curr_category == "All category":
@@ -1624,7 +1661,7 @@ class Ui_MainWindow(object):
                     self.phone_devices[i]["status"] = "busy"
                     break
 
-            threading.Thread(target=start_worker, args=(chosen_device["name"], this_worker["proxy"])).start()
+            threading.Thread(target=start_worker, args=(chosen_device["name"], this_worker)).start()
 
             # thread_count = len(ADB.get_devices())
             # proxies = []

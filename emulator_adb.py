@@ -55,14 +55,14 @@ def GetDevices():
             return 0
         
 class EmulatorWorker(threading.Thread):
-    def __init__(self, device_name: str, proxy: str) -> None:
+    def __init__(self, device_name: str, account: str) -> None:
         super().__init__()
         self.device = device_name
-        self.proxy = proxy
+        self.account = account
 
     def config_proxy(self, adb_auto: Auto) -> bool:
         locating_img_path = "./images/proxy-college-phone-1.png"
-        proxy = self.proxy.split(":")
+        proxy = self.account["proxy"].split(":")
         print("Đang tiến hành config proxy:", proxy)
 
         while True:
@@ -160,10 +160,58 @@ class EmulatorWorker(threading.Thread):
                 point_5 = adb_auto.find("./images/tiktok-swipe-up-for-more.png")
                 if point_5 > [(0, 0)]:
                     print('Swipped up')
+                    adb_auto.swipe(768.6,1810.5, 768.6,400.8)
+                    time.sleep(0.2)
                     adb_auto.swipe(768.6,1810.5, 768.6,600.8)
                     break
+
+            # 1305.2,2456.4
+            # Click profile button
+            time.sleep(1)
+            adb_auto.click(1305.2,2456.4)
+
+            # start_check_time = time.time()
+            # while time.time() - start_check_time < 10:
+            #     print('check point_6')
+            #     point_6 = adb_auto.find("./images/tiktok-profile-button.png")
+            #     if point_6 > [(0, 0)]:
+            #         print('point_6', point_6)
+            #         adb_auto.click(point_6[0][0], point_6[0][1])
+            #         break
+
+            start_check_time = time.time()
+            while time.time() - start_check_time < 10:
+                point_6 = adb_auto.find("./images/tiktok-login-button.png")
+                if point_6 > [(0, 0)]:
+                    adb_auto.click(point_6[0][0], point_6[0][1])
+                    break
             
-            print('ko vao while')
+            start_check_time = time.time()
+            while time.time() - start_check_time < 10:
+                point_7 = adb_auto.find("./images/tiktok-username-login-tab.png")
+                if point_7 > [(0, 0)]:
+                    adb_auto.click(point_7[0][0], point_7[0][1])
+                    time.sleep(0.5)
+                    adb_auto.sendText(self.account["username"]) # send username input
+                    break
+            
+            start_check_time = time.time()
+            while time.time() - start_check_time < 10:
+                point_8 = adb_auto.find("./images/tiktok-login-password-input.png")
+                if point_8 > [(0, 0)]:
+                    adb_auto.click(point_8[0][0], point_8[0][1])
+                    time.sleep(0.5)
+                    adb_auto.sendText(self.account["password"]) # send password input
+                    break
+
+            
+            start_check_time = time.time()
+            while time.time() - start_check_time < 10:
+                point_9 = adb_auto.find("./images/tiktok-login-form-button.png")
+                if point_9 > [(0, 0)]:
+                    adb_auto.click(point_9[0][0], point_9[0][1])
+                    break
+            
                 
 
 
@@ -177,26 +225,26 @@ class EmulatorWorker(threading.Thread):
             print(f"Device {self.device} started")
             for i in range(1):
                 # Config proxy for the emulator
-                proxy_config_check = self.config_proxy(adb_auto)
+                # proxy_config_check = self.config_proxy(adb_auto)
 
-                adb_auto.clearApp("com.cell47.College_Proxy")
-                time.sleep(2)
+                # adb_auto.clearApp("com.cell47.College_Proxy")
+                # time.sleep(2)
 
-                # proxy_config_check = True
-                # if proxy_config_check:
-                #     self.interactTiktok(adb_auto, tiktok_img_path)
-                # time.sleep(100)
-                # adb_auto.clearApp("com.ss.android.ugc.trill")
+                proxy_config_check = True
+                if proxy_config_check:
+                    self.interactTiktok(adb_auto, tiktok_img_path)
+                time.sleep(40)
+                adb_auto.clearApp("com.ss.android.ugc.trill")
  
         except Exception as e:
             print(e)
 
 
     
-def start_worker(device_name, proxy):
+def start_worker(device_name, this_worker):
     time.sleep(0.5)
     # device_name = GetDevices()[worker_index]
-    worker = EmulatorWorker(device_name, proxy)
+    worker = EmulatorWorker(device_name, this_worker)
     worker.run()
 
 def main():

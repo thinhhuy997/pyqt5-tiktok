@@ -16,4 +16,4 @@ class ADB:
             listDevices.pop()
             return listDevices
         else:
-            return 0
+            return None

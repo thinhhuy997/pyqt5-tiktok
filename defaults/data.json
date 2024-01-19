@@ -4,19 +4,22 @@
             "username": "thuongthuong154527",
             "password": "@K43YdZSYVCmD",
             "": "8M9hNk10LA",
-            "category": "All category"
+            "category": "All category",
+            "proxy": "103.121.89.53:6377:sun26377:d6xw5"
         },
         "dieunga542914": {
             "username": "dieunga542914",
             "password": "@K4bJ2l4P5uli",
             "": "7tR1sh8EWd",
-            "category": "All category"
+            "category": "All category",
+            "proxy": "103.161.17.11:7387:sun87387:x2eau"
         },
         "truclam195497": {
             "username": "truclam195497",
             "password": "@K4qL6TtSTL60",
             "": "8wZEp6Nmgm",
-            "category": "All category"
+            "category": "All category",
+            "proxy": "103.79.141.15:6456:sun76456:0kl9v"
         },
         "thuyngoc325850": {
             "username": "thuyngoc325850",
@@ -31,7 +34,8 @@
             "username": "hoaly376977",
             "password": "@K4CzCOMxMN2R",
             "email": "new@hotmail.com",
-            "category": "2"
+            "category": "2",
+            "proxy": "103.162.31.140:6170:sun76170:647t6"
         },
         "baotran944600": {
             "username": "baotran944600",
@@ -39,13 +43,15 @@
             "email": "duplicate@hotmail.com",
             "email_password": "duplicate",
             "": "3OrW53YfwM",
-            "category": "2"
+            "category": "2",
+            "proxy": "103.121.89.70:7439:sun47439:uroi1"
         },
         "thuyvy349879": {
             "username": "thuyvy349879",
             "password": "@K4uOO1BRkRzj",
             "": "0DWSXylxDC",
-            "category": "2"
+            "category": "2",
+            "proxy": "103.3.246.170:6443:sun16443:ydt5z"
         },
         "ngantruc540928": {
             "username": "ngantruc540928",
@@ -53,20 +59,23 @@
             "email": "duplicate@hotmail.com",
             "email_password": "duplicate",
             "": "5AhDJEu6HO",
-            "category": "2"
+            "category": "2",
+            "proxy": "103.79.142.43:6966:sun66966:qchhf"
         },
         "thuyngoc325850": {
             "username": "thuyngoc325850",
             "password": "@K4DWiMaVRak0",
             "email": "new account but not duplicated",
             "": "4jKu0I5KnU",
-            "category": "2"
+            "category": "2",
+            "proxy": "103.121.91.100:5922:sun65922:qv0tk"
         },
         "huyenthoai592223": {
             "username": "huyenthoai592223",
             "password": "@K4GGBkMEiKEu",
             "": "7G9Q6ZHqHk",
-            "category": "2"
+            "category": "2",
+            "proxy": "103.121.89.53:6187:sun26187:d293j"
         }
     }
 }
