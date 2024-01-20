@@ -9,7 +9,9 @@ import threading,subprocess,base64,cv2,random
 import numpy as np
 from datetime import datetime
 import traceback
-# from com.dtmilano.android.viewclient import ViewClient
+import datetime
+import base64
+from PIL import Image
 
 
 class Auto:
@@ -17,6 +19,10 @@ class Auto:
         self.handle = handle
     def screen_capture(self,name):
         os.system(f"adb -s {self.handle} exec-out screencap -p > {name}.png ")
+    def capture_captcha(self, save_path, name) -> str:
+        file_path = f"{save_path}/{name}.png"
+        os.system(f"adb -s {self.handle} exec-out screencap -p > {file_path}")
+        return file_path
     def click(self,x,y):
         os.system(f"adb -s {self.handle} shell input tap {x} {y}")
     def find(self,img='',template_pic_name=False,threshold=0.99):
@@ -59,6 +65,26 @@ class EmulatorWorker(threading.Thread):
         super().__init__()
         self.device = device_name
         self.account = account
+
+    def get_date_time(self):
+        # Get the current date and time
+        current_datetime = datetime.datetime.now()
+
+        # Format the date and time as a string
+        formatted_datetime = current_datetime.strftime("%Y%m%d_%H%M%S")
+
+        return formatted_datetime
+    
+    
+    def image_to_base64(self, image_path):
+        with open(image_path, "rb") as image_file:
+            # Read the image file
+            image_binary = image_file.read()
+            # Encode the image binary data to base64
+            base64_encoded = base64.b64encode(image_binary).decode('utf-8')
+            return base64_encoded
+        
+
 
     def config_proxy(self, adb_auto: Auto) -> bool:
         locating_img_path = "./images/proxy-college-phone-1.png"
@@ -212,7 +238,21 @@ class EmulatorWorker(threading.Thread):
                     adb_auto.click(point_9[0][0], point_9[0][1])
                     break
             
-                
+            
+            start_check_time = time.time()
+            while time.time() - start_check_time < 10:
+                point_10 = adb_auto.find("./images/tiktok-verify-captcha-label.png")
+                if point_10 > [(0, 0)]:
+                    formatted_datetime = self.get_date_time()
+                    file_name = f"capt_{formatted_datetime}"
+                    captcha_path = adb_auto.capture_captcha(save_path="./captchas", name=file_name)
+                    try:
+                        print('captcha_path:', captcha_path)
+                        base64_encoded_str = self.image_to_base64(image_path=captcha_path)
+                        print(base64_encoded_str)
+                    except Exception as err:
+                        print(err)
+                    break    
 
 
 

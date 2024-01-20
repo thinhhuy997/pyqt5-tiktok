@@ -351,7 +351,14 @@ class Ui_MainWindow(object):
         self.commentTable.setHorizontalHeaderItem(1, item)
         item = QtWidgets.QTableWidgetItem()
         self.commentTable.setHorizontalHeaderItem(2, item)
-        self.tabWidget.addTab(self.jobConfiguration, "")
+        # self.tabWidget.addTab(self.jobConfiguration, "")
+        
+
+        self.innerWorkTabWidget = QtWidgets.QTabWidget()
+        self.innerWorkTabWidget.setGeometry(QtCore.QRect(0, 0, 1739, 1100))
+        self.innerWorkTabWidget.setObjectName("innerWorkTabWidget")
+        self.innerWorkTabWidget.addTab(self.jobConfiguration, "")
+        self.tabWidget.addTab(self.innerWorkTabWidget, "")
 
 
 
@@ -398,6 +405,12 @@ class Ui_MainWindow(object):
 
         self.t3_category.currentTextChanged.connect(self.update_table)
 
+        self.t3_cloneAccountBtn = QtWidgets.QPushButton(self.tab_3)
+        self.t3_cloneAccountBtn.setGeometry(QtCore.QRect(200, 54, 100, 23))
+        self.t3_cloneAccountBtn.setObjectName("t3_cloneAccountBtn")
+        self.t3_cloneAccountBtn.clicked.connect(self.t3_ShowDialogCloneAccounts)
+        
+
         # T3 - Label "Connectted Devices:"
         self.t3_connectedDevicesLabel = QtWidgets.QLabel(self.tab_3)
         self.t3_connectedDevicesLabel.setGeometry(QtCore.QRect(768, 55, 100, 16))
@@ -408,6 +421,7 @@ class Ui_MainWindow(object):
         self.t3_reloadDevicesBtn = QtWidgets.QPushButton(self.tab_3)
         self.t3_reloadDevicesBtn.setGeometry(QtCore.QRect(900, 54, 51, 23))
         self.t3_reloadDevicesBtn.setObjectName("t3_reloadDevicesBtn")
+
 
 
 
@@ -438,7 +452,8 @@ class Ui_MainWindow(object):
         self.t3EditConfigBtn.setEnabled(False)
 
 
-        self.tabWidget.addTab(self.tab_3, "")
+        # self.tabWidget.addTab(self.tab_3, "")
+        self.innerWorkTabWidget.addTab(self.tab_3, "")
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
@@ -453,7 +468,8 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
         # Set default tab
-        self.tabWidget.setCurrentIndex(2)
+        self.tabWidget.setCurrentIndex(1)
+        self.innerWorkTabWidget.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -512,7 +528,7 @@ class Ui_MainWindow(object):
         self.widget.hide()
 
         # NEW 12.1.2024
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.actionTab), _translate("MainWindow", "Thao tác"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.actionTab), _translate("MainWindow", "Quản lý"))
 
         # NEW
         # Load defaut data when startup
@@ -528,7 +544,9 @@ class Ui_MainWindow(object):
         item.setText(_translate("MainWindow", "Retrieved At"))
         item = self.commentTable.horizontalHeaderItem(2)
         item.setText(_translate("MainWindow", "Status"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.jobConfiguration), _translate("MainWindow", "Công việc"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.innerWorkTabWidget), _translate("MainWindow", "Công việc"))
+        self.innerWorkTabWidget.setTabText(self.innerWorkTabWidget.indexOf(self.jobConfiguration), _translate("MainWindow", "Bình luận"))
+        self.innerWorkTabWidget.setTabText(self.innerWorkTabWidget.indexOf(self.tab_3), _translate("MainWindow", "Thả tim"))
 
         # TAB 3 - INTERACTIONS
         self.t3LiveSrcLabel.setText(_translate("MainWindow", "Livestream (nguồn):"))
@@ -538,9 +556,10 @@ class Ui_MainWindow(object):
         self.t3LiveStatusLineEdit.setText("Chưa kết nối!")
         self.t3SaveConfigBtn.setText(_translate("MainWindow", "Lưu"))
         self.t3EditConfigBtn.setText(_translate("MainWindow", "Chỉnh sửa"))
-        self.t3_filterLabel.setText(_translate("MainWindow", "Lọc:"))
+        # self.t3_filterLabel.setText(_translate("MainWindow", "Lọc:"))
         self.t3_connectedDevicesLabel.setText(_translate("MainWindow", "Connected devices:"))
         self.t3_reloadDevicesBtn.setText(_translate("MainWindow", "Reload"))
+        self.t3_cloneAccountBtn.setText(_translate("MainWindow", "Thêm tài khoản"))
         item = self.t3tableWidget.horizontalHeaderItem(0)
         item.setText(_translate("MainWindow", "Account"))
         item = self.t3tableWidget.horizontalHeaderItem(1)
@@ -1536,6 +1555,8 @@ class Ui_MainWindow(object):
             # show accounts by category that them belong
             self.add_accounts_to_table(self.accounts[category])
             self.add_accounts_to_worker_table(self.accounts[category])
+    
+    
 
 
     def load_default_data(self):
@@ -1675,10 +1696,198 @@ class Ui_MainWindow(object):
             #     p_count += 1
 
 
-            
+    def t3_ShowDialogCloneAccounts(self):
+
+        _translate = QtCore.QCoreApplication.translate
+
+        # self.innerWorkTabWidget.addTab(self.tab_3, "")
+        
+        # Create a dialog
+        dialog = QDialog()
+        dialog.setWindowTitle('Thêm tài khoản')
+        dialog.setGeometry(450, 180, 1000, 390)  # Set the size of the dialog
+
+        tabWidget = QtWidgets.QTabWidget(dialog)
+        tabWidget.setGeometry(QtCore.QRect(0, 0, 1000, 390))
+        tabWidget.setObjectName("tabWidget")
+
+        tab_add_by_pasting = QtWidgets.QWidget()
+        tab_add_by_pasting.setObjectName("tab_add_by_pasting")
+        tabWidget.addTab(tab_add_by_pasting, "")
+        tabWidget.setTabText(tabWidget.indexOf(tab_add_by_pasting), _translate("MainWindow", "Dạng text"))
+
+        tab_add_by_category = QtWidgets.QWidget()
+        tab_add_by_category.setObjectName("tab_add_by_pasting")
+        tabWidget.addTab(tab_add_by_category, "")
+        tabWidget.setTabText(tabWidget.indexOf(tab_add_by_category), _translate("MainWindow", "Chọn từ category"))
+
+
+        # Create a text edit box
+        text_edit = QTextEdit(tab_add_by_pasting)
+        # text_edit.setGeometry(10, 10, 900, 360)
+
+        temp_columns = ["","username", "password", "email", "email_password", "cookie", "token", ]
+
+        comboBoxA = QtWidgets.QComboBox(tab_add_by_pasting)
+        comboBoxA.setObjectName("comboBoxA")
+        comboBoxA.addItems(temp_columns)
+
+
+        comboBoxB = QtWidgets.QComboBox(tab_add_by_pasting)
+        comboBoxB.setObjectName("comboBoxB")
+        comboBoxB.addItems(temp_columns)
+
+        comboBoxC = QtWidgets.QComboBox(tab_add_by_pasting)
+        comboBoxC.setObjectName("comboBoxC")
+        comboBoxC.addItems(temp_columns)
+
+        comboBoxD = QtWidgets.QComboBox(tab_add_by_pasting)
+        comboBoxD.setObjectName("comboBoxD")
+        comboBoxD.addItems(temp_columns)
+
+        comboBoxE = QtWidgets.QComboBox(tab_add_by_pasting)
+        comboBoxE.setObjectName("comboBoxE")
+        comboBoxE.addItems(temp_columns)
+
+        comboBoxF = QtWidgets.QComboBox(tab_add_by_pasting)
+        comboBoxF.setObjectName("comboBoxF")
+        comboBoxF.addItems(temp_columns)
+
+        comboBoxG = QtWidgets.QComboBox(tab_add_by_pasting)
+        comboBoxG.setObjectName("comboBoxG")
+        comboBoxG.addItems(temp_columns)
+
+        comboBoxGroup = [comboBoxA, comboBoxB, comboBoxC, comboBoxD]
 
 
 
+        # The Temporary Table Widget
+        tempTableWidget = QtWidgets.QTableWidget()
+        tempTableWidget.setGeometry(QtCore.QRect(180, 130, 411, 192))
+        tempTableWidget.setObjectName("tempTableWidget")
+        tempTableWidget.setColumnCount(7)
+        tempTableWidget.setRowCount(5)
+
+
+        item = QtWidgets.QTableWidgetItem()
+        tempTableWidget.setHorizontalHeaderItem(0, item)
+        item = QtWidgets.QTableWidgetItem()
+        tempTableWidget.setHorizontalHeaderItem(1, item)
+        item = QtWidgets.QTableWidgetItem()
+        tempTableWidget.setHorizontalHeaderItem(2, item)
+        item = QtWidgets.QTableWidgetItem()
+        tempTableWidget.setHorizontalHeaderItem(3, item)
+        item = QtWidgets.QTableWidgetItem()
+        tempTableWidget.setHorizontalHeaderItem(4, item)
+        item = QtWidgets.QTableWidgetItem()
+        tempTableWidget.setHorizontalHeaderItem(5, item)
+        item = QtWidgets.QTableWidgetItem()
+        tempTableWidget.setHorizontalHeaderItem(6, item)
+
+        # _translate = QtCore.QCoreApplication.translate
+        # item = self.tempTableWidget.verticalHeaderItem(0)
+        # item.setText(_translate("MainWindow", "1"))
+        # item = self.tempTableWidget.verticalHeaderItem(1)
+        # item.setText(_translate("MainWindow", "2"))
+
+        column_widths = [136, 136, 136, 136, 136, 136, 136]
+        for i, width in enumerate(column_widths):
+            tempTableWidget.setColumnWidth(i, width)
+
+        # Caught the text-change's event on text_edit
+        text_edit.textChanged.connect(lambda: self.onAccountsTextChanged(text_edit.toPlainText()))
+
+        # Add Save button to close the dialog
+        tab_pasting_save_button = QPushButton('Lưu', tab_add_by_pasting)
+        # tab_pasting_save_button.clicked.connect(lambda: self.onSaveAddAccountsClicked(text_edit.toPlainText()))
+
+        # Set up the layout
+        layout_1 = QGridLayout()
+        layout_1.addWidget(text_edit, 0, 0, 1, 7)
+        layout_1.addWidget(comboBoxA, 1, 0)
+        layout_1.addWidget(comboBoxB, 1, 1)
+        layout_1.addWidget(comboBoxC, 1, 2)
+        layout_1.addWidget(comboBoxD, 1, 3)
+        layout_1.addWidget(comboBoxE, 1, 4)
+        layout_1.addWidget(comboBoxF, 1, 5)
+        layout_1.addWidget(comboBoxG, 1, 6)
+        layout_1.addWidget(tempTableWidget, 2, 0, 1, 7)
+        layout_1.addWidget(tab_pasting_save_button, 3, 0, 1, 2)
+
+        tab_add_by_pasting.setLayout(layout_1)
+
+        #---------------------------------------# For category 2 in dialog add clone accounts ------------------------------------
+        temp_category = QtWidgets.QComboBox(tab_add_by_category)
+        temp_category.setGeometry(QtCore.QRect(10, 10, 200, 21))
+        temp_category.setObjectName("temp_category")
+        # temp_category.addItem("All category")
+
+                # The Temporary Table Widget
+        self.tempCloneTableWidget_2 = QtWidgets.QTableWidget()
+        self.tempCloneTableWidget_2.setGeometry(QtCore.QRect(180, 130, 411, 192))
+        self.tempCloneTableWidget_2.setObjectName("tempTableWidget")
+        self.tempCloneTableWidget_2.setColumnCount(7)
+        self.tempCloneTableWidget_2.setRowCount(39)
+
+
+        item = QtWidgets.QTableWidgetItem()
+        self.tempCloneTableWidget_2.setHorizontalHeaderItem(0, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.tempCloneTableWidget_2.setHorizontalHeaderItem(1, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.tempCloneTableWidget_2.setHorizontalHeaderItem(2, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.tempCloneTableWidget_2.setHorizontalHeaderItem(3, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.tempCloneTableWidget_2.setHorizontalHeaderItem(4, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.tempCloneTableWidget_2.setHorizontalHeaderItem(5, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.tempCloneTableWidget_2.setHorizontalHeaderItem(6, item)
+
+        for i, width in enumerate(column_widths):
+            self.tempCloneTableWidget_2.setColumnWidth(i, width)
+
+        # Iterate through the items and print them
+        for i in range(self.category.count()):
+            item_text = self.category.itemText(i)
+            temp_category.addItem(item_text)
+
+
+        temp_category.currentTextChanged.connect(self.update_temp_clone_table)
+
+        tab_category_save_button = QPushButton('Lưu', tab_add_by_category)
+        tab_category_save_button.clicked.connect(lambda: self.cloneAccountByCategory(temp_category.currentText()))
+        tab_category_save_button.setGeometry(QtCore.QRect(6, 330, 260, 25))
+
+        # Set up the layout
+        layout_2 = QGridLayout()
+        layout_2.addWidget(temp_category, 0, 0, 1, 2)
+        layout_2.addWidget(self.tempCloneTableWidget_2, 1, 0, 1, 7)
+        layout_2.addWidget(tab_category_save_button, 3, 0, 1, 2)
+
+        tab_add_by_category.setLayout(layout_2)
+
+        # Show the dialog
+        dialog.exec_()
+
+    def update_temp_clone_table(self, category):
+        
+        if category == "All category":
+            all_data = {}
+            for account_obj in self.accounts.values():
+                all_data.update(account_obj)
+
+            # Show all accounts
+            self.add_accounts_to_table(all_data)
+            self.add_accounts_to_worker_table(all_data)
+        else:
+            # show accounts by category that them belong
+            self.add_accounts_to_table(self.accounts[category])
+            self.add_accounts_to_worker_table(self.accounts[category])
+
+    def cloneAccountByCategory(self, curr_category):
+        print(curr_category)
 
 if __name__ == "__main__":
     import sys

@@ -28,15 +28,16 @@
             "category": "All category"
         }
     },
-    "1": {},
-    "2": {
+    "1": {
         "hoaly376977": {
             "username": "hoaly376977",
             "password": "@K4CzCOMxMN2R",
             "email": "new@hotmail.com",
-            "category": "2",
+            "category": "1",
             "proxy": "103.162.31.140:6170:sun76170:647t6"
-        },
+        }
+    },
+    "2": {
         "baotran944600": {
             "username": "baotran944600",
             "password": "@K4S4J84RmxrZ",

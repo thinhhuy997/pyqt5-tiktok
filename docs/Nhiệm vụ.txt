@@ -1,0 +1,18 @@
+- Trong tab t??ng t c:
++ b? ph?n l?c category
++ Thay b?ng n£t "thˆm t…i kho?n" (s? clone t…i kho?n t? tab qu?n ly c?ng l?u v…o file) - hi?n ra dialog ?? thˆm t…i kho?n - dialog n…y c?ng s? c¢ 2 tabs (thˆm b?ng category v… thˆm b?ng copy-past):
+add by category:
+ 
+c•n add by copy-paste:
+ 
++ ch?c n?ng thˆm devices cho account (m?i devices 10 accounts ho?c ??i lo?i v?y):
+ 
++ n£t thˆm devices s? b? disable
++ khi ch?n c c rows ? b?ng t…i kho?n th n£t "thˆm devices" s? ???c enable 
++ khi b?m v…o n£t "Thˆm devices" s? hi?n ra dialog nh? sau:
+ 
+d?a trˆn s? rows ?a ch?n trong b?ng devices n…y s? t¡nh to n ra s? t…i kho?n trˆn 1 devices r?i b?m n£t Add devices button ?? ti?n h…nh thˆm c c t…i kho?n v…o device (ti?n h…nh clone app, m?i app s? l… 1 t…i kho?n)
++ ti?n h…nh clone app t?i nhi?u tiktok v? m y r?i cho 1 account l… 1 tiktok (1 phone c¢ nhi?u tiktok)
+
+
+
