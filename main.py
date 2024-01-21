@@ -74,9 +74,12 @@ class Ui_MainWindow(object):
 
     def __init__(self):
         self.column_order = ["username", "password","email", "email_password", "cookie", "token", "profile_status", "proxy", "status"]
+        self.worker_column_order = ["username", "device_id", "app_order", "started_time", "interaction_quantity", "status", "actions"]
+        self.device_column_order = ["name", "connected_order"]
 
         self.accounts = {}
-        
+        self.cloned_accounts = {}
+
         self.base_url = "https://traodoisub.com"
 
         # New
@@ -102,25 +105,25 @@ class Ui_MainWindow(object):
         self.completed_threads = 0
 
         # NEW 19 - 1 - 2024
-        # self.phone_device = [
-        #     {
+        # self.phone_device = {
+        #     "ce011711e365a00304": {
         #         "name": "ce011711e365a00304",
         #         "status": "free"
         #     },
-        #     {
+        #     "ce011711e365a00306": {
         #         "name": "ce011711e365a00306",
         #         "status": "busy"
         #     }
-	    # ]
+	    # }
 
-        self.phone_devices = []
+        self.phone_devices = {}
         devices = ADB.get_devices()
         if devices is not None:
             for device in devices:
                 temp = {}
                 temp["name"] = device
                 temp["status"] = "free" # Initilize status free
-                self.phone_devices.append(temp)
+                self.phone_devices[device] = temp
 
 
     def setupUi(self, MainWindow):
@@ -399,16 +402,21 @@ class Ui_MainWindow(object):
 
         # T3 - Combobox "category"
         self.t3_category = QtWidgets.QComboBox(self.tab_3)
-        self.t3_category.setGeometry(QtCore.QRect(40, 54, 120, 21))
+        self.t3_category.setGeometry(QtCore.QRect(2000, 54, 120, 21))
         self.t3_category.setObjectName("t3_category")
         self.t3_category.addItem("All category")
 
         self.t3_category.currentTextChanged.connect(self.update_table)
 
         self.t3_cloneAccountBtn = QtWidgets.QPushButton(self.tab_3)
-        self.t3_cloneAccountBtn.setGeometry(QtCore.QRect(200, 54, 100, 23))
+        self.t3_cloneAccountBtn.setGeometry(QtCore.QRect(10, 54, 100, 23))
         self.t3_cloneAccountBtn.setObjectName("t3_cloneAccountBtn")
         self.t3_cloneAccountBtn.clicked.connect(self.t3_ShowDialogCloneAccounts)
+
+        self.t3_configureDeviceBtn = QtWidgets.QPushButton(self.tab_3)
+        self.t3_configureDeviceBtn.setGeometry(QtCore.QRect(120, 54, 100, 23))
+        self.t3_configureDeviceBtn.setObjectName("t3_configureDeviceBtn")
+        self.t3_configureDeviceBtn.clicked.connect(self.t3_ShowDialogConfigDevices)
         
 
         # T3 - Label "Connectted Devices:"
@@ -426,9 +434,9 @@ class Ui_MainWindow(object):
 
 
         self.t3tableWidget = QtWidgets.QTableWidget(self.tab_3)
-        self.t3tableWidget.setGeometry(QtCore.QRect(10, 88, 941, 680))
+        self.t3tableWidget.setGeometry(QtCore.QRect(10, 88, 1616, 680))
         self.t3tableWidget.setObjectName("t3tableWidget")
-        self.t3tableWidget.setColumnCount(5)
+        self.t3tableWidget.setColumnCount(10)
         self.t3tableWidget.setRowCount(26)
         item = QtWidgets.QTableWidgetItem()
         self.t3tableWidget.setHorizontalHeaderItem(0, item)
@@ -440,6 +448,10 @@ class Ui_MainWindow(object):
         self.t3tableWidget.setHorizontalHeaderItem(3, item)
         item = QtWidgets.QTableWidgetItem()
         self.t3tableWidget.setHorizontalHeaderItem(4, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.t3tableWidget.setHorizontalHeaderItem(5, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.t3tableWidget.setHorizontalHeaderItem(6, item)
         self.t3tableWidget.setColumnWidth(0, 150)
         self.t3tableWidget.setColumnWidth(1, 150)
         self.t3tableWidget.setColumnWidth(2, 120)
@@ -560,16 +572,36 @@ class Ui_MainWindow(object):
         self.t3_connectedDevicesLabel.setText(_translate("MainWindow", "Connected devices:"))
         self.t3_reloadDevicesBtn.setText(_translate("MainWindow", "Reload"))
         self.t3_cloneAccountBtn.setText(_translate("MainWindow", "Thêm tài khoản"))
+        self.t3_configureDeviceBtn.setText(_translate("MainWindow", "Thiết lập devices"))
+
+        # item = self.t3tableWidget.horizontalHeaderItem(0)
+        # item.setText(_translate("MainWindow", "Account"))
+        # item = self.t3tableWidget.horizontalHeaderItem(1)
+        # item.setText(_translate("MainWindow", "Started time"))
+        # item = self.t3tableWidget.horizontalHeaderItem(2)
+        # item.setText(_translate("MainWindow", "Interaction quantity"))
+        # item = self.t3tableWidget.horizontalHeaderItem(3)
+        # item.setText(_translate("MainWindow", "Status"))
+        # item_temp = self.t3tableWidget.horizontalHeaderItem(4)
+        # item_temp.setText(_translate("MainWindow", "Actions"))
+
         item = self.t3tableWidget.horizontalHeaderItem(0)
         item.setText(_translate("MainWindow", "Account"))
         item = self.t3tableWidget.horizontalHeaderItem(1)
-        item.setText(_translate("MainWindow", "Started time"))
+        item.setText(_translate("MainWindow", "Device ID"))
         item = self.t3tableWidget.horizontalHeaderItem(2)
-        item.setText(_translate("MainWindow", "Interaction quantity"))
+        item.setText(_translate("MainWindow", "App order"))
         item = self.t3tableWidget.horizontalHeaderItem(3)
+        item.setText(_translate("MainWindow", "Started time"))
+        item = self.t3tableWidget.horizontalHeaderItem(4)
+        item.setText(_translate("MainWindow", "Interaction quantity"))
+        item = self.t3tableWidget.horizontalHeaderItem(5)
         item.setText(_translate("MainWindow", "Status"))
-        item_temp = self.t3tableWidget.horizontalHeaderItem(4)
+        item_temp = self.t3tableWidget.horizontalHeaderItem(6)
         item_temp.setText(_translate("MainWindow", "Actions"))
+
+
+
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("MainWindow", "Tương tác"))
 
         self.t3_connectedDevicesLineEdit.setText(str(len(self.phone_devices)))
@@ -967,34 +999,6 @@ class Ui_MainWindow(object):
         for column_index, key in enumerate(self.column_order):
 
             value = data.get(key, "")
-            # category = data["category"]
-            # username = data["username"]
-            
-            # if key == "username":
-            #     profile_id = value
-
-            # if key == "profile_status":
-            #     # button = QPushButton(f"Run")
-            #     # button.clicked.connect(lambda state, row=row_index, col=column_index: self.on_run_button_clicked(row, col))
-            #     # self.tableWidget.setCellWidget(row_index, column_index, button)
-
-            #     profile_path = f"./user-profiles/{profile_id}"
-            #     if self.check_profiles_exists(profile_path=profile_path):
-            #         item = QtWidgets.QLabel()
-            #         pixmap = QPixmap(self.check_mark_img)
-            #         item.setPixmap(pixmap)
-            #         item.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
-
-            #         self.tableWidget.setCellWidget(row_index, column_index, item)
-
-            #         # self.accounts[category][username]['profile_status'] = True
-            #     else:
-            #         # self.accounts[category][username]['profile_status'] = False
-            #         pass
-            # else:
-                # item = QtWidgets.QTableWidgetItem()
-                # item.setText(_translate("MainWindow", str(value)))
-                # self.tableWidget.setItem(row_index, column_index, item)
             
             item = QtWidgets.QTableWidgetItem()
             item.setText(_translate("MainWindow", str(value)))
@@ -1039,18 +1043,38 @@ class Ui_MainWindow(object):
 
     def add_row_to_worker_table(self, row_index, data):
         _translate = QtCore.QCoreApplication.translate
-        item = QtWidgets.QTableWidgetItem()
-        item.setText(_translate("MainWindow", str(data['username'])))
-        self.t3tableWidget.setItem(row_index, 0, item)
-        # Add button to table cell
+        for column_index, key in enumerate(self.worker_column_order):
+            value = data.get(key, "")
+            item = QtWidgets.QTableWidgetItem()
+            item.setText(_translate("MainWindow", str(value)))
+            self.t3tableWidget.setItem(row_index, column_index, item)
 
-        button = QPushButton("Start")
-        # setting geometry of button 
-        button.setGeometry(0, 0, 0, 0)
-        button.clicked.connect(lambda: self.start_adb_worker(row_index))
-        item = QtWidgets.QTableWidgetItem()
-        self.t3tableWidget.setCellWidget(row_index, 4, button)
-        self.t3tableWidget.setItem(row_index, 4, item)
+            if key == "actions":
+                button = QPushButton("Start")
+                button.clicked.connect(lambda: self.start_adb_worker(row_index))
+                item = QtWidgets.QTableWidgetItem()
+                self.t3tableWidget.setCellWidget(row_index, column_index, button)
+
+
+    def add_row_to_temp_clone_table(self, row_index, data):
+        _translate = QtCore.QCoreApplication.translate
+        for column_index, key in enumerate(self.column_order):
+
+            value = data.get(key, "")
+            
+            item = QtWidgets.QTableWidgetItem()
+            item.setText(_translate("MainWindow", str(value)))
+            self.tempCloneTableWidget_2.setItem(row_index, column_index, item)
+
+    def add_row_to_device_table(self, row_index, data):
+        _translate = QtCore.QCoreApplication.translate
+        for column_index, key in enumerate(self.device_column_order):
+
+            value = data.get(key, "")
+            
+            item = QtWidgets.QTableWidgetItem()
+            item.setText(_translate("MainWindow", str(value)))
+            self.deviceTable.setItem(row_index, column_index, item)
 
     def add_accounts_to_temp_table(self, accounts: list):
         self.tempTableWidget.setRowCount(len(accounts))
@@ -1417,6 +1441,18 @@ class Ui_MainWindow(object):
         except Exception as e:
             print(f'Error saving JSON file: {e}')
 
+    def saveClonedJsonFile(self, json_data):
+        file_path = "./defaults/cloned_data.json"
+        try:
+            # Write the JSON data to the selected file
+            json_object = json.dumps(json_data, indent=4)
+            with open(file_path, 'w') as file:
+                file.write(json_object)
+
+            print(f'Successfully saved JSON file: {file_path}')
+        except Exception as e:
+            print(f'Error saving JSON file: {e}')
+
     def show_add_proxies_dialog(self):
         if self.tableWidget.rowCount() == 0:
             return self.show_error_dialog(err_msg="Bạn phải thêm tài khoản trước khi thêm proxy")
@@ -1550,19 +1586,20 @@ class Ui_MainWindow(object):
 
             # Show all accounts
             self.add_accounts_to_table(all_data)
-            self.add_accounts_to_worker_table(all_data)
+            # self.add_accounts_to_worker_table(all_data)
         else:
             # show accounts by category that them belong
             self.add_accounts_to_table(self.accounts[category])
-            self.add_accounts_to_worker_table(self.accounts[category])
+            # self.add_accounts_to_worker_table(self.accounts[category])
     
     
 
 
     def load_default_data(self):
-        file_path = "./defaults/data.json"
+        # load default data in the tab manager --------------------------------
+        origin_data_path = "./defaults/data.json"
 
-        with open(file_path, 'r') as file:
+        with open(origin_data_path, 'r') as file:
             data = json.load(file)
         self.accounts = data
 
@@ -1573,11 +1610,20 @@ class Ui_MainWindow(object):
 
         # Show all accounts
         self.add_accounts_to_table(all_data)
-        self.add_accounts_to_worker_table(all_data)
         categories = list(self.accounts.keys())
         for i in range(1, len(categories)):
             self.category.addItem(categories[i])
-            self.t3_category.addItem(categories[i])
+
+
+        # load default data in the tab working -----------------------------------
+        cloned_data_path = "./defaults/cloned_data.json"
+
+        with open(cloned_data_path, 'r') as file:
+            cloned_data = json.load(file)
+        self.cloned_accounts = cloned_data
+
+        # Show all accounts
+        self.add_accounts_to_worker_table(self.cloned_accounts)
 
     def onAccountsTextChanged(self, text):
 
@@ -1826,7 +1872,7 @@ class Ui_MainWindow(object):
         self.tempCloneTableWidget_2 = QtWidgets.QTableWidget()
         self.tempCloneTableWidget_2.setGeometry(QtCore.QRect(180, 130, 411, 192))
         self.tempCloneTableWidget_2.setObjectName("tempTableWidget")
-        self.tempCloneTableWidget_2.setColumnCount(7)
+        self.tempCloneTableWidget_2.setColumnCount(10)
         self.tempCloneTableWidget_2.setRowCount(39)
 
 
@@ -1844,6 +1890,33 @@ class Ui_MainWindow(object):
         self.tempCloneTableWidget_2.setHorizontalHeaderItem(5, item)
         item = QtWidgets.QTableWidgetItem()
         self.tempCloneTableWidget_2.setHorizontalHeaderItem(6, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.tempCloneTableWidget_2.setHorizontalHeaderItem(7, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.tempCloneTableWidget_2.setHorizontalHeaderItem(8, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.tempCloneTableWidget_2.setHorizontalHeaderItem(9, item)
+
+        item = self.tempCloneTableWidget_2.horizontalHeaderItem(0)
+        item.setText(_translate("MainWindow", "Username"))
+        item = self.tempCloneTableWidget_2.horizontalHeaderItem(1)
+        item.setText(_translate("MainWindow", "Password"))
+        item = self.tempCloneTableWidget_2.horizontalHeaderItem(2)
+        item.setText(_translate("MainWindow", "Email"))
+        item = self.tempCloneTableWidget_2.horizontalHeaderItem(3)
+        item.setText(_translate("MainWindow", "Email_password"))
+        item = self.tempCloneTableWidget_2.horizontalHeaderItem(4)
+        item.setText(_translate("MainWindow", "Cookie"))
+        item = self.tempCloneTableWidget_2.horizontalHeaderItem(5)
+        item.setText(_translate("MainWindow", "Token"))
+        item = self.tempCloneTableWidget_2.horizontalHeaderItem(6)
+        item.setText(_translate("MainWindow", "Profile Status"))
+        item = self.tempCloneTableWidget_2.horizontalHeaderItem(7)
+        item.setText(_translate("MainWindow", "Proxy"))
+        item = self.tempCloneTableWidget_2.horizontalHeaderItem(8)
+        item.setText(_translate("MainWindow", "Received Jobs"))
+        item = self.tempCloneTableWidget_2.horizontalHeaderItem(9)
+        item.setText(_translate("MainWindow", "Status"))
 
         for i, width in enumerate(column_widths):
             self.tempCloneTableWidget_2.setColumnWidth(i, width)
@@ -1853,11 +1926,18 @@ class Ui_MainWindow(object):
             item_text = self.category.itemText(i)
             temp_category.addItem(item_text)
 
+        def getSelectedRows():
+            selected_rows = set()
+            for item in self.tempCloneTableWidget_2.selectedItems():
+                selected_rows.add(item.row())
+            return selected_rows
+
+
 
         temp_category.currentTextChanged.connect(self.update_temp_clone_table)
 
         tab_category_save_button = QPushButton('Lưu', tab_add_by_category)
-        tab_category_save_button.clicked.connect(lambda: self.cloneAccountByCategory(temp_category.currentText()))
+        tab_category_save_button.clicked.connect(lambda: self.cloneAccountByCategory(temp_category.currentText(), getSelectedRows()))
         tab_category_save_button.setGeometry(QtCore.QRect(6, 330, 260, 25))
 
         # Set up the layout
@@ -1868,6 +1948,78 @@ class Ui_MainWindow(object):
 
         tab_add_by_category.setLayout(layout_2)
 
+        # Update temp table with the first time when show dialog
+        all_data = {}
+        for account_obj in self.accounts.values():
+            all_data.update(account_obj)
+        self.add_accounts_to_temp_clone_table(all_data)
+
+        # Show the dialog
+        dialog.exec_()
+
+        
+
+    def t3_ShowDialogConfigDevices(self):
+        _translate = QtCore.QCoreApplication.translate
+
+        # self.innerWorkTabWidget.addTab(self.tab_3, "")
+        
+        # Create a dialog
+        dialog = QDialog()
+        dialog.setWindowTitle('Thiết Lập Devices')
+        dialog.setGeometry(450, 180, 1000, 390)  # Set the size of the dialog
+
+        # The Temporary Table Widget
+        self.deviceTable = QtWidgets.QTableWidget(dialog)
+        self.deviceTable.setGeometry(QtCore.QRect(180, 130, 411, 192))
+        self.deviceTable.setObjectName("deviceTable")
+        self.deviceTable.setColumnCount(10)
+        self.deviceTable.setRowCount(10)
+
+
+        item = QtWidgets.QTableWidgetItem()
+        self.deviceTable.setHorizontalHeaderItem(0, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.deviceTable.setHorizontalHeaderItem(1, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.deviceTable.setHorizontalHeaderItem(2, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.deviceTable.setHorizontalHeaderItem(3, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.deviceTable.setHorizontalHeaderItem(4, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.deviceTable.setHorizontalHeaderItem(5, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.deviceTable.setHorizontalHeaderItem(6, item)
+
+        save_button = QPushButton('Lưu')
+        # save_button.clicked.connect(lambda: self.cloneAccountByCategory(temp_category.currentText(), getSelectedRows()))
+
+        item = QtWidgets.QTableWidgetItem()
+        self.deviceTable.setHorizontalHeaderItem(0, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.deviceTable.setHorizontalHeaderItem(1, item)
+
+        item = self.deviceTable.horizontalHeaderItem(0)
+        item.setText(_translate("MainWindow", "Device ID"))
+        item = self.deviceTable.horizontalHeaderItem(1)
+        item.setText(_translate("MainWindow", "Connected number"))
+
+        column_widths = [300, 300]
+        for i, width in enumerate(column_widths):
+            self.deviceTable.setColumnWidth(i, width)
+
+        # Set up the layout
+        layout = QGridLayout()
+        layout.addWidget(self.deviceTable, 0, 0, 5, 5)
+        layout.addWidget(save_button, 5, 0, 1, 2)
+
+        dialog.setLayout(layout)
+
+        # Update temp table with the first time when show dialog
+        phone_devices = self.phone_devices
+        self.add_phone_to_device_table(phone_devices)
+        
         # Show the dialog
         dialog.exec_()
 
@@ -1878,16 +2030,76 @@ class Ui_MainWindow(object):
             for account_obj in self.accounts.values():
                 all_data.update(account_obj)
 
-            # Show all accounts
-            self.add_accounts_to_table(all_data)
-            self.add_accounts_to_worker_table(all_data)
+            self.add_accounts_to_temp_clone_table(all_data)
+
         else:
             # show accounts by category that them belong
-            self.add_accounts_to_table(self.accounts[category])
-            self.add_accounts_to_worker_table(self.accounts[category])
+            self.add_accounts_to_temp_clone_table(self.accounts[category])    
 
-    def cloneAccountByCategory(self, curr_category):
-        print(curr_category)
+    def cloneAccountByCategory(self, curr_category, selected_rows):
+
+        if curr_category == "All category":
+            temp_accounts = self.get_all_accounts()
+        else:
+            temp_accounts = self.accounts[curr_category]
+        
+        if len(selected_rows) == 0:
+            dup_count = self.count_duplicate_keys(self.cloned_accounts, temp_accounts)
+            if dup_count > 0:
+                confirm_status = self.show_confirm_dialog(question_text=f"Phát hiện {dup_count} tài khoản bị trùng lặp, bạn có muốn ghi đè?")
+                if confirm_status == 1:
+                    self.cloned_accounts.update(temp_accounts) # update all the cloned accounts
+                elif confirm_status == 0:
+                    # update only the cloned accounts that are not duplicated
+                    dup_keys = set(self.cloned_accounts.keys()).intersection(set(temp_accounts.keys())) 
+                    for dup_key in dup_keys:
+                        temp_accounts.pop(dup_key)
+                    self.cloned_accounts.update(temp_accounts)
+            elif dup_count == 0:
+                self.cloned_accounts.update(temp_accounts)
+        else:
+            all_keys = list(temp_accounts.keys())
+            filtered_keys = [all_keys[i] for i in selected_rows]
+            filtered_accounts = {key: temp_accounts[key] for key in filtered_keys}
+            # self.cloned_accounts.update(filtered_accounts)
+
+            dup_count = self.count_duplicate_keys(self.cloned_accounts, filtered_accounts)
+            if dup_count > 0:
+                confirm_status = self.show_confirm_dialog(question_text=f"Phát hiện {dup_count} tài khoản bị trùng lặp, bạn có muốn ghi đè?")
+                if confirm_status == 1:
+                    self.cloned_accounts.update(filtered_accounts) # update all the cloned accounts
+                elif confirm_status == 0:
+                    # update only the cloned accounts that are not duplicated
+                    dup_keys = set(self.cloned_accounts.keys()).intersection(set(filtered_accounts.keys())) 
+                    for dup_key in dup_keys:
+                        filtered_accounts.pop(dup_key)
+                    self.cloned_accounts.update(filtered_accounts)
+            elif dup_count == 0:
+                self.cloned_accounts.update(filtered_accounts)
+
+        self.add_accounts_to_worker_table(self.cloned_accounts)
+        self.saveClonedJsonFile(self.cloned_accounts)
+
+    def add_accounts_to_temp_clone_table(self, accounts: dict):
+        self.tempCloneTableWidget_2.setRowCount(len(accounts))
+        __sortingEnabled = self.tableWidget.isSortingEnabled()
+
+        # Positions of field columns in the data table
+        # column_order = ["tds_username", "tds_pass", "face_uid", "face_pass", "cookie", "token", "proxy", "user_agent", "tds_coins",  "status",  "action"]
+
+        for row_index, account_data in enumerate(accounts.values()):
+            self.add_row_to_temp_clone_table(row_index, account_data)
+
+        self.tempCloneTableWidget_2.setSortingEnabled(__sortingEnabled)
+
+    def add_phone_to_device_table(self, phones):
+        self.deviceTable.setRowCount(len(phones))
+        __sortingEnabled = self.tableWidget.isSortingEnabled()
+        for row_index, phone_data in enumerate(phones.values()):
+            self.add_row_to_device_table(row_index, phone_data)
+        self.deviceTable.setSortingEnabled(__sortingEnabled)
+
+
 
 if __name__ == "__main__":
     import sys

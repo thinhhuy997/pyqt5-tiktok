@@ -146,6 +146,97 @@ class EmulatorWorker(threading.Thread):
                 print("Lỗi khi config proxy:", err)
                 traceback.print_exc()
                 return False #Set up proxy Failed!
+            
+    
+    def saveTiktokAccountIntoDevice(self, adb_auto: Auto, app_coordinates: list):
+        point_1 = app_coordinates
+        adb_auto.click(point_1[0][0], point_1[0][1])
+        print("point_1 is clicked")
+
+        start_check_time = time.time()
+        while time.time() - start_check_time < 20:
+            point_2 = adb_auto.find("./images/tiktok-agree-and-continue.png")
+            if point_2 > [(0, 0)]:
+                adb_auto.click(point_2[0][0], point_2[0][1])
+                break
+        
+        start_check_time = time.time()
+        while time.time() - start_check_time < 10:
+            point_3 = adb_auto.find("./images/tiktok-skip-interest.png")
+            if point_3 > [(0, 0)]:
+                adb_auto.click(point_3[0][0], point_3[0][1])
+                break
+
+        start_check_time = time.time()
+        while time.time() - start_check_time < 10:
+            point_4 = adb_auto.find("./images/tiktok-start-watching.png")
+            if point_4 > [(0, 0)]:
+                adb_auto.click(point_4[0][0], point_4[0][1])
+                break
+
+        start_check_time = time.time()
+        while time.time() - start_check_time < 10:
+            point_5 = adb_auto.find("./images/tiktok-swipe-up-for-more.png")
+            if point_5 > [(0, 0)]:
+                print('Swipped up')
+                adb_auto.swipe(768.6,1810.5, 768.6,400.8)
+                time.sleep(0.2)
+                adb_auto.swipe(768.6,1810.5, 768.6,600.8)
+                break
+
+        # 1305.2,2456.4
+        # Click profile button
+        time.sleep(1)
+        adb_auto.click(1305.2,2456.4)
+
+        start_check_time = time.time()
+        while time.time() - start_check_time < 10:
+            point_6 = adb_auto.find("./images/tiktok-login-button.png")
+            if point_6 > [(0, 0)]:
+                adb_auto.click(point_6[0][0], point_6[0][1])
+                break
+        
+        start_check_time = time.time()
+        while time.time() - start_check_time < 10:
+            point_7 = adb_auto.find("./images/tiktok-username-login-tab.png")
+            if point_7 > [(0, 0)]:
+                adb_auto.click(point_7[0][0], point_7[0][1])
+                time.sleep(0.5)
+                adb_auto.sendText(self.account["username"]) # send username input
+                break
+        
+        start_check_time = time.time()
+        while time.time() - start_check_time < 10:
+            point_8 = adb_auto.find("./images/tiktok-login-password-input.png")
+            if point_8 > [(0, 0)]:
+                adb_auto.click(point_8[0][0], point_8[0][1])
+                time.sleep(0.5)
+                adb_auto.sendText(self.account["password"]) # send password input
+                break
+
+        
+        start_check_time = time.time()
+        while time.time() - start_check_time < 10:
+            point_9 = adb_auto.find("./images/tiktok-login-form-button.png")
+            if point_9 > [(0, 0)]:
+                adb_auto.click(point_9[0][0], point_9[0][1])
+                break
+        
+        
+        start_check_time = time.time()
+        while time.time() - start_check_time < 10:
+            point_10 = adb_auto.find("./images/tiktok-verify-captcha-label.png")
+            if point_10 > [(0, 0)]:
+                formatted_datetime = self.get_date_time()
+                file_name = f"capt_{formatted_datetime}"
+                captcha_path = adb_auto.capture_captcha(save_path="./captchas", name=file_name)
+                try:
+                    print('captcha_path:', captcha_path)
+                    base64_encoded_str = self.image_to_base64(image_path=captcha_path)
+                    print(base64_encoded_str)
+                except Exception as err:
+                    print(err)
+                break
 
 
     def interactTiktok(self, adb_auto: Auto, app_img_path: str) -> None:
@@ -259,22 +350,26 @@ class EmulatorWorker(threading.Thread):
     def run(self):
         try:
             adb_auto = Auto(self.device)
-            tiktok_img_path = "./images/tiktok-phone-1.png"
+            # tiktok_img_path = "./images/tiktok-phone-1.png"
 
-            print('--------------------')
-            print(f"Device {self.device} started")
-            for i in range(1):
-                # Config proxy for the emulator
-                # proxy_config_check = self.config_proxy(adb_auto)
+            # print('--------------------')
+            # print(f"Device {self.device} started")
+            # for i in range(1):
+            #     # Config proxy for the emulator
+            #     # proxy_config_check = self.config_proxy(adb_auto)
 
-                # adb_auto.clearApp("com.cell47.College_Proxy")
-                # time.sleep(2)
+            #     # adb_auto.clearApp("com.cell47.College_Proxy")
+            #     # time.sleep(2)
 
-                proxy_config_check = True
-                if proxy_config_check:
-                    self.interactTiktok(adb_auto, tiktok_img_path)
-                time.sleep(40)
-                adb_auto.clearApp("com.ss.android.ugc.trill")
+            #     proxy_config_check = True
+            #     if proxy_config_check:
+            #         self.interactTiktok(adb_auto, tiktok_img_path)
+            #     time.sleep(40)
+            #     adb_auto.clearApp("com.ss.android.ugc.trill")
+
+            # -------------------------
+            self.saveTiktokAccountIntoDevice(adb_auto, [(169.5, 250.0)])
+            # self.saveTiktokAccountIntoDevice(adb_auto, [(169.5+286,250.0)])
  
         except Exception as e:
             print(e)
