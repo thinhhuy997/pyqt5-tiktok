@@ -9,7 +9,7 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QMainWindow, QFileDialog, QPushButton, QMenu, QAction, QMessageBox, QDialog, QVBoxLayout,QTextEdit, QLabel, QLineEdit, QTabWidget, QGridLayout
+from PyQt5.QtWidgets import QMainWindow, QFileDialog, QPushButton, QMenu, QAction, QMessageBox, QDialog, QVBoxLayout,QTextEdit, QLabel, QLineEdit, QTabWidget, QGridLayout, QTableWidget, QTableWidgetItem
 from PyQt5.QtCore import QFile, QTextStream, QThreadPool, QJsonDocument
 from PyQt5 import QtCore
 from PyQt5.QtCore import Qt
@@ -27,7 +27,8 @@ from tiktok_socket import TiktokSocketWorker
 
 from functools import partial
 from adb_ultils import ADB
-from emulator_adb import start_worker
+from emulator_adb_backup import start_worker
+from emulator_adb import EmulatorWorker
 
 class PasswordDelegate(QtWidgets.QStyledItemDelegate):
     def initStyleOption(self, option, index):
@@ -123,7 +124,15 @@ class Ui_MainWindow(object):
                 temp = {}
                 temp["name"] = device
                 temp["status"] = "free" # Initilize status free
+                temp["accounts"] = []
                 self.phone_devices[device] = temp
+
+
+        
+        # ? All workers: int is unix time
+        self.waiting_workers: list[str, EmulatorWorker] = {}
+        self.running_workers : list(str, EmulatorWorker) = {}
+        self.completed_workers : list(str, EmulatorWorker) = {}
 
 
     def setupUi(self, MainWindow):
@@ -417,6 +426,7 @@ class Ui_MainWindow(object):
         self.t3_configureDeviceBtn.setGeometry(QtCore.QRect(120, 54, 100, 23))
         self.t3_configureDeviceBtn.setObjectName("t3_configureDeviceBtn")
         self.t3_configureDeviceBtn.clicked.connect(self.t3_ShowDialogConfigDevices)
+        self.t3_configureDeviceBtn.setEnabled(False)
         
 
         # T3 - Label "Connectted Devices:"
@@ -455,8 +465,14 @@ class Ui_MainWindow(object):
         self.t3tableWidget.setColumnWidth(0, 150)
         self.t3tableWidget.setColumnWidth(1, 150)
         self.t3tableWidget.setColumnWidth(2, 120)
-        self.t3tableWidget.setColumnWidth(3, 300)
-        self.t3tableWidget.setColumnWidth(4, 200)
+        self.t3tableWidget.setColumnWidth(3, 120)
+        self.t3tableWidget.setColumnWidth(4, 120)
+        self.t3tableWidget.setColumnWidth(5, 400)
+        self.t3tableWidget.setColumnWidth(6, 120)
+
+
+        self.t3tableWidget.setSelectionMode(QTableWidget.MultiSelection)
+        self.t3tableWidget.itemSelectionChanged.connect(self.selection_changed)
 
         self.t3SaveConfigBtn.clicked.connect(self.t3_saveConfig)
         self.t3EditConfigBtn.clicked.connect(self.t3_editConfig)
@@ -711,7 +727,7 @@ class Ui_MainWindow(object):
                 tiktok_worker.signals.profile_status.connect(lambda status, row=row_i: self.change_profile_status(status, row))
                 tiktok_worker.signals.cookie.connect(lambda cookie, row=row_i: self.change_cookie(cookie, row))
 
-                # Execute the worker in the thread pool
+                # Execute the worker in the thread pool 2 (used for workers only)
                 self.threadpool_2.start(tiktok_worker)
 
             
@@ -992,6 +1008,12 @@ class Ui_MainWindow(object):
 
             # Set the new item for the specified cell
             self.tableWidget.setItem(row, col, new_item)
+
+    def changeWorkerCellTableValue(self, row, col, newValue):
+            new_item = QtWidgets.QTableWidgetItem(newValue)
+
+            # Set the new item for the specified cell
+            self.t3tableWidget.setItem(row, col, new_item)
 
 
     def add_row(self, row_index, data):
@@ -1728,8 +1750,7 @@ class Ui_MainWindow(object):
                     self.phone_devices[i]["status"] = "busy"
                     break
 
-            threading.Thread(target=start_worker, args=(chosen_device["name"], this_worker)).start()
-
+            # threading.Thread(target=start_worker, args=(chosen_device["name"], this_worker)).start()
             # thread_count = len(ADB.get_devices())
             # proxies = []
             # p_count = 0
@@ -1992,8 +2013,8 @@ class Ui_MainWindow(object):
         item = QtWidgets.QTableWidgetItem()
         self.deviceTable.setHorizontalHeaderItem(6, item)
 
-        save_button = QPushButton('Lưu')
-        # save_button.clicked.connect(lambda: self.cloneAccountByCategory(temp_category.currentText(), getSelectedRows()))
+        save_button = QPushButton('Thiết lập')
+        save_button.clicked.connect(lambda: self.addAccountsToDevices())
 
         item = QtWidgets.QTableWidgetItem()
         self.deviceTable.setHorizontalHeaderItem(0, item)
@@ -2009,10 +2030,14 @@ class Ui_MainWindow(object):
         for i, width in enumerate(column_widths):
             self.deviceTable.setColumnWidth(i, width)
 
+        self.accountsPerDevicelabel = QLabel()
+
         # Set up the layout
         layout = QGridLayout()
         layout.addWidget(self.deviceTable, 0, 0, 5, 5)
         layout.addWidget(save_button, 5, 0, 1, 2)
+        layout.addWidget(self.accountsPerDevicelabel , 5, 4, 1, 1)
+        
 
         dialog.setLayout(layout)
 
@@ -2099,9 +2124,97 @@ class Ui_MainWindow(object):
             self.add_row_to_device_table(row_index, phone_data)
         self.deviceTable.setSortingEnabled(__sortingEnabled)
 
+        selected_indexes = [index.row() for index in self.t3tableWidget.selectionModel().selectedRows()]
 
+
+        self.accountsPerDevicelabel.setText(f"(Accounts / Devices): {len(selected_indexes)}/{len(self.phone_devices)}")
+
+    def selection_changed(self):
+        selected_indexes = [index.row() for index in self.t3tableWidget.selectionModel().selectedRows()]
+        if len(selected_indexes) > 0:
+            self.t3_configureDeviceBtn.setEnabled(True)
+        else:
+            self.t3_configureDeviceBtn.setEnabled(False)
+
+    def display_worker_result(self, result, row):
+        print('result:', result)
+        self.changeWorkerCellTableValue(row, self.worker_column_order.index('status'), newValue=str(result))
+
+    def display_device_status(self, device: tuple, row):
+        print('device', device)
+        if device[1] == "free":
+            try:
+                keys = list(self.waiting_workers.keys())
+                first_key = keys[0]
+                self.threadpool_2.start(self.waiting_workers[first_key]) # run the first worker in the waitting workers list
+                self.running_workers[first_key] = self.waiting_workers.pop(first_key)
+                self.phone_devices["ce0817182b1ae49a0b"]["accounts"].append(first_key)
+            except Exception as err:
+                print(err)
+    
+    def addAccountsToDevices(self):
+        selected_rows = [index.row() for index in self.t3tableWidget.selectionModel().selectedRows()]
+
+        devices_count = len(self.phone_devices)
+        accounts_count = len(self.selected_rows)
+
+        accounts_per_device = devices_count // accounts_count
+
+
+
+
+
+
+
+
+
+
+
+
+
+        for row_index in selected_rows:
+            chosen_accounts = {}
+
+            chosen_accounts = self.cloned_accounts
+            keys = list(chosen_accounts.keys())
+            chosen_account_key = keys[row_index]
+            this_account = chosen_accounts[chosen_account_key]
+
+            # Temporarily unused this
+            # if this_worker.get('proxy') is None:
+            #     self.show_error_dialog('Tài khoản này chưa có proxy, hãy thêm vào và thử lại!')
+            # else:
+            #     print(self.phone_devices)
+                
+            for i, key in enumerate(self.phone_devices):
+                if self.phone_devices[key]['status'] == "free":
+                    chosen_device = self.phone_devices[key]
+                    break
+
+            chosen_device = self.phone_devices[key]
+
+            tiktok_worker = EmulatorWorker(chosen_device["name"], this_account)
+
+            self.waiting_workers[this_account["username"]]= tiktok_worker
+
+
+            tiktok_worker.signals.result.connect(lambda result, row=row_index: self.display_worker_result(result, row))
+            tiktok_worker.signals.device_status.connect(lambda device, row=row_index: self.display_device_status(device, row))
+
+            # self.threadpool_2.start(tiktok_worker)
+        
+
+        keys = list(self.waiting_workers.keys())
+        first_key = keys[0]
+        # self.threadpool_2.start(self.waiting_workers[first_key]) # run the first worker in the waitting workers list
+        self.running_workers[first_key] = self.waiting_workers.pop(first_key)
+        self.phone_devices["ce0817182b1ae49a0b"]["accounts"].append(first_key)
+
+        print(self.phone_devices)
+    
 
 if __name__ == "__main__":
+
     import sys
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()

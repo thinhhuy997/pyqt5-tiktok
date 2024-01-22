@@ -12,9 +12,12 @@ import traceback
 import datetime
 import base64
 from PIL import Image
+from PyQt5.QtCore import Qt, QRunnable, QObject, pyqtSlot, pyqtSignal, QThreadPool
 
 
-class Auto:
+
+
+class Auto():
     def __init__(self,handle):
         self.handle = handle
     def screen_capture(self,name):
@@ -49,6 +52,8 @@ class Auto:
         os.system(f"adb -s {self.handle} shell am force-stop {package_name}")
     def swipe(self, x1, y1, x2, y2):
         subprocess.call(f"adb -s {self.handle} shell input touchscreen swipe {x1} {y1} {x2} {y2} 1000", stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+    def backHome(self):
+        os.system(f"adb -s {self.handle} shell input keyevent KEYCODE_HOME")
 
 def GetDevices():
         devices = subprocess.check_output("adb devices")
@@ -60,11 +65,18 @@ def GetDevices():
         else:
             return 0
         
-class EmulatorWorker(threading.Thread):
+class WorkerSignals(QObject):
+    result = pyqtSignal(object)
+    error = pyqtSignal(tuple)
+    device_status = pyqtSignal(tuple)
+
+class EmulatorWorker(QRunnable):
     def __init__(self, device_name: str, account: str) -> None:
-        super().__init__()
+        super(EmulatorWorker, self).__init__()
         self.device = device_name
         self.account = account
+
+        self.signals = WorkerSignals()
 
     def get_date_time(self):
         # Get the current date and time
@@ -149,34 +161,46 @@ class EmulatorWorker(threading.Thread):
             
     
     def saveTiktokAccountIntoDevice(self, adb_auto: Auto, app_coordinates: list):
+        self.signals.device_status.emit((self.device, "busy"))
+        
+        self.signals.result.emit('Đang tiến hành thiết lập...')
         point_1 = app_coordinates
         adb_auto.click(point_1[0][0], point_1[0][1])
-        print("point_1 is clicked")
+
 
         start_check_time = time.time()
+        
+        self.signals.result.emit('Đang tìm và xử lý point_2')
         while time.time() - start_check_time < 20:
+            # print('Processing point_2 ...')
             point_2 = adb_auto.find("./images/tiktok-agree-and-continue.png")
             if point_2 > [(0, 0)]:
                 adb_auto.click(point_2[0][0], point_2[0][1])
                 break
         
+        self.signals.result.emit('Đang tìm và xử lý point_3')
         start_check_time = time.time()
         while time.time() - start_check_time < 10:
+            # print('Processing point_3 ...')
             point_3 = adb_auto.find("./images/tiktok-skip-interest.png")
             if point_3 > [(0, 0)]:
                 adb_auto.click(point_3[0][0], point_3[0][1])
                 break
-
+        
+        self.signals.result.emit('Đang tìm và xử lý point_4')
         start_check_time = time.time()
         while time.time() - start_check_time < 10:
+            # print('Processing point_4 ...')
             point_4 = adb_auto.find("./images/tiktok-start-watching.png")
             if point_4 > [(0, 0)]:
                 adb_auto.click(point_4[0][0], point_4[0][1])
                 break
-
+        
+        self.signals.result.emit('Đang tìm và xử lý point_5')
         start_check_time = time.time()
         while time.time() - start_check_time < 10:
-            point_5 = adb_auto.find("./images/tiktok-swipe-up-for-more.png")
+            # print('Processing point_5 (swipe) ...')
+            point_5 = adb_auto.find("./images/swipe-up-for-more.png")
             if point_5 > [(0, 0)]:
                 print('Swipped up')
                 adb_auto.swipe(768.6,1810.5, 768.6,400.8)
@@ -189,15 +213,19 @@ class EmulatorWorker(threading.Thread):
         time.sleep(1)
         adb_auto.click(1305.2,2456.4)
 
+        self.signals.result.emit('Đang tìm và xử lý point_6')
         start_check_time = time.time()
         while time.time() - start_check_time < 10:
+            # print('Processing point_6 ...')
             point_6 = adb_auto.find("./images/tiktok-login-button.png")
             if point_6 > [(0, 0)]:
                 adb_auto.click(point_6[0][0], point_6[0][1])
                 break
         
+        self.signals.result.emit('Đang tìm và xử lý point_7')
         start_check_time = time.time()
         while time.time() - start_check_time < 10:
+            # print('Processing point_7 ...')
             point_7 = adb_auto.find("./images/tiktok-username-login-tab.png")
             if point_7 > [(0, 0)]:
                 adb_auto.click(point_7[0][0], point_7[0][1])
@@ -205,8 +233,10 @@ class EmulatorWorker(threading.Thread):
                 adb_auto.sendText(self.account["username"]) # send username input
                 break
         
+        self.signals.result.emit('Đang tìm và xử lý point_8')
         start_check_time = time.time()
         while time.time() - start_check_time < 10:
+            # print('Processing point_8 ...')
             point_8 = adb_auto.find("./images/tiktok-login-password-input.png")
             if point_8 > [(0, 0)]:
                 adb_auto.click(point_8[0][0], point_8[0][1])
@@ -214,29 +244,38 @@ class EmulatorWorker(threading.Thread):
                 adb_auto.sendText(self.account["password"]) # send password input
                 break
 
-        
+        self.signals.result.emit('Đang tìm và xử lý point_9')
         start_check_time = time.time()
         while time.time() - start_check_time < 10:
+            # print('Processing point_9 ...')
             point_9 = adb_auto.find("./images/tiktok-login-form-button.png")
             if point_9 > [(0, 0)]:
                 adb_auto.click(point_9[0][0], point_9[0][1])
                 break
         
-        
+        self.signals.result.emit('Đang tìm và xử lý point_10 (captcha)')
         start_check_time = time.time()
         while time.time() - start_check_time < 10:
+            # print('Processing point_10 (captcha) ...')
             point_10 = adb_auto.find("./images/tiktok-verify-captcha-label.png")
             if point_10 > [(0, 0)]:
                 formatted_datetime = self.get_date_time()
                 file_name = f"capt_{formatted_datetime}"
                 captcha_path = adb_auto.capture_captcha(save_path="./captchas", name=file_name)
                 try:
-                    print('captcha_path:', captcha_path)
+                    # print('captcha_path:', captcha_path)
                     base64_encoded_str = self.image_to_base64(image_path=captcha_path)
                     print(base64_encoded_str)
                 except Exception as err:
                     print(err)
                 break
+        
+        # return to the main screen
+        adb_auto.backHome()
+
+        self.signals.result.emit('Hoàn thành thiết lập')
+
+        self.signals.device_status.emit((self.device, "free"))
 
 
     def interactTiktok(self, adb_auto: Auto, app_img_path: str) -> None:
@@ -346,7 +385,7 @@ class EmulatorWorker(threading.Thread):
                     break    
 
 
-
+    @pyqtSlot()                
     def run(self):
         try:
             adb_auto = Auto(self.device)
