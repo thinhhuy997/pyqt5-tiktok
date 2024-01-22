@@ -75,7 +75,7 @@ class Ui_MainWindow(object):
 
     def __init__(self):
         self.column_order = ["username", "password","email", "email_password", "cookie", "token", "profile_status", "proxy", "status"]
-        self.worker_column_order = ["username", "device_id", "app_order", "started_time", "interaction_quantity", "status", "actions"]
+        self.worker_column_order = ["username", "proxy", "device_id", "app_order", "started_time", "interaction_quantity", "status", "actions"]
         self.device_column_order = ["name", "connected_order"]
 
         self.accounts = {}
@@ -462,13 +462,16 @@ class Ui_MainWindow(object):
         self.t3tableWidget.setHorizontalHeaderItem(5, item)
         item = QtWidgets.QTableWidgetItem()
         self.t3tableWidget.setHorizontalHeaderItem(6, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.t3tableWidget.setHorizontalHeaderItem(7, item)
         self.t3tableWidget.setColumnWidth(0, 150)
         self.t3tableWidget.setColumnWidth(1, 150)
-        self.t3tableWidget.setColumnWidth(2, 120)
+        self.t3tableWidget.setColumnWidth(2, 150)
         self.t3tableWidget.setColumnWidth(3, 120)
         self.t3tableWidget.setColumnWidth(4, 120)
-        self.t3tableWidget.setColumnWidth(5, 400)
-        self.t3tableWidget.setColumnWidth(6, 120)
+        self.t3tableWidget.setColumnWidth(5, 120)
+        self.t3tableWidget.setColumnWidth(6, 400)
+        self.t3tableWidget.setColumnWidth(7, 120)
 
 
         self.t3tableWidget.setSelectionMode(QTableWidget.MultiSelection)
@@ -604,17 +607,19 @@ class Ui_MainWindow(object):
         item = self.t3tableWidget.horizontalHeaderItem(0)
         item.setText(_translate("MainWindow", "Account"))
         item = self.t3tableWidget.horizontalHeaderItem(1)
-        item.setText(_translate("MainWindow", "Device ID"))
+        item.setText(_translate("MainWindow", "Proxy"))
         item = self.t3tableWidget.horizontalHeaderItem(2)
-        item.setText(_translate("MainWindow", "App order"))
+        item.setText(_translate("MainWindow", "Device ID"))
         item = self.t3tableWidget.horizontalHeaderItem(3)
-        item.setText(_translate("MainWindow", "Started time"))
+        item.setText(_translate("MainWindow", "App order"))
         item = self.t3tableWidget.horizontalHeaderItem(4)
-        item.setText(_translate("MainWindow", "Interaction quantity"))
+        item.setText(_translate("MainWindow", "Started time"))
         item = self.t3tableWidget.horizontalHeaderItem(5)
+        item.setText(_translate("MainWindow", "Interaction quantity"))
+        item = self.t3tableWidget.horizontalHeaderItem(6)
         item.setText(_translate("MainWindow", "Status"))
-        item_temp = self.t3tableWidget.horizontalHeaderItem(6)
-        item_temp.setText(_translate("MainWindow", "Actions"))
+        item_temp = self.t3tableWidget.horizontalHeaderItem(7)
+        item_temp.setText(_translate("MainWindow", "Action"))
 
 
 
@@ -2154,26 +2159,22 @@ class Ui_MainWindow(object):
     
     def addAccountsToDevices(self):
         selected_rows = [index.row() for index in self.t3tableWidget.selectionModel().selectedRows()]
+        keys = list(self.cloned_accounts.keys())
 
-        devices_count = len(self.phone_devices)
-        accounts_count = len(self.selected_rows)
+        worker_accounts = []
+        for row_i in selected_rows:
+            key = keys[row_i]
+            account = self.cloned_accounts[key]
+            worker_accounts.append(account)
 
-        accounts_per_device = devices_count // accounts_count
+        for i, phone_key in enumerate(self.phone_devices):
+            self.phone_devices[phone_key]["accounts"].append(worker_accounts[i]["username"])
 
+        for phone_key in self.phone_devices:
+            print(self.phone_devices[phone_key])
 
-
-
-
-
-
-
-
-
-
-
-
+        return
         for row_index in selected_rows:
-            chosen_accounts = {}
 
             chosen_accounts = self.cloned_accounts
             keys = list(chosen_accounts.keys())
@@ -2206,15 +2207,13 @@ class Ui_MainWindow(object):
 
         keys = list(self.waiting_workers.keys())
         first_key = keys[0]
-        # self.threadpool_2.start(self.waiting_workers[first_key]) # run the first worker in the waitting workers list
+        self.threadpool_2.start(self.waiting_workers[first_key]) # run the first worker in the waitting workers list
         self.running_workers[first_key] = self.waiting_workers.pop(first_key)
         self.phone_devices["ce0817182b1ae49a0b"]["accounts"].append(first_key)
 
-        print(self.phone_devices)
     
 
 if __name__ == "__main__":
-
     import sys
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()

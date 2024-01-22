@@ -160,12 +160,18 @@ class EmulatorWorker(QRunnable):
                 return False #Set up proxy Failed!
             
     
-    def saveTiktokAccountIntoDevice(self, adb_auto: Auto, app_coordinates: list):
+    def saveTiktokAccountIntoDevice(self, adb_auto: Auto, app_img_path: str):
         self.signals.device_status.emit((self.device, "busy"))
         
         self.signals.result.emit('Đang tiến hành thiết lập...')
-        point_1 = app_coordinates
-        adb_auto.click(point_1[0][0], point_1[0][1])
+
+        adb_auto.backHome()
+
+        start_check_time = time.time()
+        while time.time() - start_check_time < 20:
+            point_1 = adb_auto.find("./images/tiktok-phone-1.png")
+            if point_1 > [(0, 0)]:
+                adb_auto.click(point_1[0][0], point_1[0][1])
 
 
         start_check_time = time.time()
