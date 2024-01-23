@@ -124,15 +124,15 @@ class Ui_MainWindow(object):
                 temp = {}
                 temp["name"] = device
                 temp["status"] = "free" # Initilize status free
-                temp["accounts"] = []
+                temp["accounts"] = None
                 self.phone_devices[device] = temp
 
 
         
         # ? All workers: int is unix time
-        self.waiting_workers: list[str, EmulatorWorker] = {}
-        self.running_workers : list(str, EmulatorWorker) = {}
-        self.completed_workers : list(str, EmulatorWorker) = {}
+        self.waiting_workers: dict[str, EmulatorWorker] = {}
+        self.running_workers : dict(str, EmulatorWorker) = {}
+        self.completed_workers : dict(str, EmulatorWorker) = {}
 
 
     def setupUi(self, MainWindow):
@@ -1174,9 +1174,7 @@ class Ui_MainWindow(object):
 
     def file_preprocessing(self, account_lines, account_pos: list) -> None:
         current_category = self.category.currentText()
-        accounts_arr = []
         accounts_obj = {}
-        account_wrapper_obj = {}
         for index, account_line in enumerate(account_lines):
 
 
@@ -1204,6 +1202,7 @@ class Ui_MainWindow(object):
             
             # accounts_arr.append(account_obj)
             accounts_obj[account_obj["username"]] = account_obj
+            accounts_obj[account_obj["username"]]["device_id"] = None
 
         # self.accounts[current_category] = accounts_arr
         self.accounts[current_category] = accounts_obj
@@ -2145,6 +2144,19 @@ class Ui_MainWindow(object):
         print('result:', result)
         self.changeWorkerCellTableValue(row, self.worker_column_order.index('status'), newValue=str(result))
 
+    def remove_configure_worker(self, worker_id):
+        # remove worker from list
+        self.waiting_workers.pop(worker_id)
+
+    def display_debug(self, debug_obj):
+        print('----------------DEBUG-----------------')
+        print(debug_obj)
+        print('--------------------------------------')
+
+    def tiktok_display_error(self, error, row):
+        print('error:', error)
+        self.changeWorkerCellTableValue(row, self.worker_column_order.index('status'), newValue=f'{error}')
+
     def display_device_status(self, device: tuple, row):
         print('device', device)
         if device[1] == "free":
@@ -2166,50 +2178,52 @@ class Ui_MainWindow(object):
             key = keys[row_i]
             account = self.cloned_accounts[key]
             worker_accounts.append(account)
+            # self.cloned_accounts[key]["device_id"] = 
 
         for i, phone_key in enumerate(self.phone_devices):
-            self.phone_devices[phone_key]["accounts"].append(worker_accounts[i]["username"])
+            if self.phone_devices[phone_key]["accounts"] is None: # not link to an account
+                self.phone_devices[phone_key]["accounts"] = worker_accounts[i]["username"]
+                self.changeWorkerCellTableValue(row=i, col=self.worker_column_order.index('device_id'), newValue=phone_key)
 
-        for phone_key in self.phone_devices:
-            print(self.phone_devices[phone_key])
-
-        return
-        for row_index in selected_rows:
-
-            chosen_accounts = self.cloned_accounts
-            keys = list(chosen_accounts.keys())
-            chosen_account_key = keys[row_index]
-            this_account = chosen_accounts[chosen_account_key]
-
-            # Temporarily unused this
-            # if this_worker.get('proxy') is None:
-            #     self.show_error_dialog('Tài khoản này chưa có proxy, hãy thêm vào và thử lại!')
-            # else:
-            #     print(self.phone_devices)
-                
-            for i, key in enumerate(self.phone_devices):
-                if self.phone_devices[key]['status'] == "free":
-                    chosen_device = self.phone_devices[key]
-                    break
-
-            chosen_device = self.phone_devices[key]
-
-            tiktok_worker = EmulatorWorker(chosen_device["name"], this_account)
-
-            self.waiting_workers[this_account["username"]]= tiktok_worker
+                # update self.cloned_accounts
+                acc_key = worker_accounts[i]["username"]
+                self.cloned_accounts[acc_key]["device_id"] = phone_key
 
 
-            tiktok_worker.signals.result.connect(lambda result, row=row_index: self.display_worker_result(result, row))
-            tiktok_worker.signals.device_status.connect(lambda device, row=row_index: self.display_device_status(device, row))
+        for i, account in enumerate(worker_accounts):
 
-            # self.threadpool_2.start(tiktok_worker)
+            if account["device_id"] is not None:
+                tiktok_worker = EmulatorWorker(account["device_id"], account)
+                tiktok_worker.signals.result.connect(lambda result, row=i: self.display_worker_result(result, row))
+                tiktok_worker.signals.account_configure.connect(lambda configure_status: self.remove_configure_worker(configure_status))
+                tiktok_worker.signals.debug.connect(lambda debug_obj: self.display_debug(debug_obj))
+                tiktok_worker.signals.error.connect(lambda error, row=row_i: self.tiktok_display_error(error, row))
+                self.waiting_workers[account["device_id"]] = tiktok_worker
+
+
+
         
+        # for key in self.phone_devices:
+        #     print(self.phone_devices[key])
+                
+        if len(self.waiting_workers) == 0:
+            self.show_error_dialog(err_msg="Các thiết bị (phone) chưa thiết lập đã hết, hãy lắp thêm!")
 
-        keys = list(self.waiting_workers.keys())
-        first_key = keys[0]
-        self.threadpool_2.start(self.waiting_workers[first_key]) # run the first worker in the waitting workers list
-        self.running_workers[first_key] = self.waiting_workers.pop(first_key)
-        self.phone_devices["ce0817182b1ae49a0b"]["accounts"].append(first_key)
+
+        for w_key in self.waiting_workers:
+            if self.phone_devices[w_key]["accounts"] is not None:
+                tik_worker = self.waiting_workers[w_key]
+                self.threadpool_2.start(tik_worker)
+
+
+
+
+        
+        # keys = list(self.waiting_workers.keys())
+        # first_key = keys[0]
+        # self.threadpool_2.start(self.waiting_workers[first_key]) # run the first worker in the waitting workers list
+        # self.running_workers[first_key] = self.waiting_workers.pop(first_key)
+        # self.phone_devices["ce0817182b1ae49a0b"]["accounts"].append(first_key)
 
     
 

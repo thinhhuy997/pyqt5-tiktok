@@ -1,4 +1,7 @@
+import json
 import os,time
+
+import requests
 try:
  import threading,subprocess,base64,cv2,random
  import numpy as np
@@ -69,6 +72,8 @@ class WorkerSignals(QObject):
     result = pyqtSignal(object)
     error = pyqtSignal(tuple)
     device_status = pyqtSignal(tuple)
+    account_configure = pyqtSignal(object)
+    debug = pyqtSignal(tuple)
 
 class EmulatorWorker(QRunnable):
     def __init__(self, device_name: str, account: str) -> None:
@@ -95,7 +100,99 @@ class EmulatorWorker(QRunnable):
             # Encode the image binary data to base64
             base64_encoded = base64.b64encode(image_binary).decode('utf-8')
             return base64_encoded
-        
+    
+    def convert_png_to_base64(self, file_path):
+        with open(file_path, "rb") as image_file:
+            # Read the binary data of the image file
+            image_binary = image_file.read()
+
+            # Encode the binary data as base64
+            base64_encoded = base64.b64encode(image_binary)
+
+            # Convert the bytes to a string (decode)
+            base64_string = base64_encoded.decode("utf-8")
+
+        return base64_string
+    
+    def solve_captcha(self, base64_string: str):
+        api_token = "zRNjqIDpjur5aRONjGZts7wqewMzDmdZ3FUB5lPrTGIu6KNxJXSi6GrpgdIAMAyVIKn1HG81daaiEQUS"
+        try:
+
+            url = "https://omocaptcha.com/api/createJob"
+
+            data = {
+                "api_token": "zRNjqIDpjur5aRONjGZts7wqewMzDmdZ3FUB5lPrTGIu6KNxJXSi6GrpgdIAMAyVIKn1HG81daaiEQUS",
+                "data": {
+                    "type_job_id": "24",
+                    "image_base64": base64_string
+                }
+            }
+
+            json_data = json.dumps(data)
+
+            # Set the headers to indicate that you are sending JSON data
+            headers = {'Content-Type': 'application/json'}
+
+            
+            
+            response = requests.post(url, data=json_data, headers=headers)
+            status_code = response.status_code
+            try:
+                response = response.json()
+                self.signals.debug.emit(("response", response))
+                self.signals.debug.emit(("success status code", status_code))
+            except:
+                self.signals.debug.emit(("response text", status_code))
+                self.signals.debug.emit(("error status code", status_code))
+
+            return
+
+
+            job_id = None
+            if response['error'] is False:
+                job_id = response['job_id']
+
+            self.signals.debug.emit(("job_id", job_id))
+
+
+
+
+            if job_id is not None:
+                url_2 = "https://omocaptcha.com/api/getJobResult"
+
+                data_2 = {
+                    "api_token": "zRNjqIDpjur5aRONjGZts7wqewMzDmdZ3FUB5lPrTGIu6KNxJXSi6GrpgdIAMAyVIKn1HG81daaiEQUS",
+                    "job_id": int(job_id)
+                }
+
+                json_data_2 = json.dumps(data_2)
+
+                # Set the headers to indicate that you are sending JSON data
+                headers = {'Content-Type': 'application/json'}
+
+                response_2 = requests.post(url_2, data=json_data_2, headers=headers)
+                response_2 = response_2.json()
+
+                start = 0
+                end = 3
+                while start < end:
+                    if response_2["status"] == "success":
+                        return response_2["result"]
+                    elif response_2["status"] == "running":
+                        pass
+                    elif response_2["status"] == "fail":
+                        return response_2["result"]
+                    start += 1
+
+            # return "test"
+
+        except Exception as e:
+            tb_info = traceback.format_exc()
+            self.signals.error.emit((type(e), e.args, tb_info))
+
+
+
+
 
 
     def config_proxy(self, adb_auto: Auto) -> bool:
@@ -164,9 +261,14 @@ class EmulatorWorker(QRunnable):
         self.signals.device_status.emit((self.device, "busy"))
         
         self.signals.result.emit('Đang tiến hành thiết lập...')
-
         adb_auto.backHome()
+        point_1 = adb_auto.find("./images/tiktok-phone-1.png")
+        adb_auto.click(point_1[0][0], point_1[0][1])
+        adb_auto.clearApp("com.ss.android.ugc.trill")
+        adb_auto.backHome()
+        adb_auto.clearApp("com.ss.android.ugc.trill")
 
+        # start app
         start_check_time = time.time()
         while time.time() - start_check_time < 20:
             point_1 = adb_auto.find("./images/tiktok-phone-1.png")
@@ -177,22 +279,31 @@ class EmulatorWorker(QRunnable):
         start_check_time = time.time()
         
         self.signals.result.emit('Đang tìm và xử lý point_2')
-        while time.time() - start_check_time < 20:
+        while time.time() - start_check_time < 10:
             # print('Processing point_2 ...')
             point_2 = adb_auto.find("./images/tiktok-agree-and-continue.png")
+            point_3 = adb_auto.find("./images/tiktok-skip-interest.png")
             if point_2 > [(0, 0)]:
                 adb_auto.click(point_2[0][0], point_2[0][1])
                 break
+            if point_3 > [(0, 0)]:
+                adb_auto.click(point_3[0][0], point_3[0][1])
+                break
+
         
         self.signals.result.emit('Đang tìm và xử lý point_3')
         start_check_time = time.time()
         while time.time() - start_check_time < 10:
             # print('Processing point_3 ...')
+            point_2 = adb_auto.find("./images/tiktok-agree-and-continue.png")
             point_3 = adb_auto.find("./images/tiktok-skip-interest.png")
+            if point_2 > [(0, 0)]:
+                adb_auto.click(point_2[0][0], point_2[0][1])
+                break
             if point_3 > [(0, 0)]:
                 adb_auto.click(point_3[0][0], point_3[0][1])
                 break
-        
+
         self.signals.result.emit('Đang tìm và xử lý point_4')
         start_check_time = time.time()
         while time.time() - start_check_time < 10:
@@ -202,21 +313,27 @@ class EmulatorWorker(QRunnable):
                 adb_auto.click(point_4[0][0], point_4[0][1])
                 break
         
-        self.signals.result.emit('Đang tìm và xử lý point_5')
-        start_check_time = time.time()
-        while time.time() - start_check_time < 10:
-            # print('Processing point_5 (swipe) ...')
-            point_5 = adb_auto.find("./images/swipe-up-for-more.png")
-            if point_5 > [(0, 0)]:
-                print('Swipped up')
-                adb_auto.swipe(768.6,1810.5, 768.6,400.8)
-                time.sleep(0.2)
-                adb_auto.swipe(768.6,1810.5, 768.6,600.8)
-                break
+        # Đang trượt lên
+        time.sleep(2)
+        adb_auto.swipe(768.6,1810.5, 768.6,600.8)
+        time.sleep(0.2)
+        adb_auto.swipe(768.6,1810.5, 768.6,600.8)
+        
+        # self.signals.result.emit('Đang tìm và xử lý point_5')
+        # start_check_time = time.time()
+        # while time.time() - start_check_time < 20:
+        #     # print('Processing point_5 (swipe) ...')
+        #     point_5 = adb_auto.find("./images/swipe-up-for-more-2.png")
+        #     if point_5 > [(0, 0)]:
+        #         print('Swipped up')
+        #         adb_auto.swipe(768.6,1810.5, 768.6,400.8)
+        #         time.sleep(0.2)
+        #         adb_auto.swipe(768.6,1810.5, 768.6,600.8)
+        #         break
 
-        # 1305.2,2456.4
         # Click profile button
         time.sleep(1)
+        # click profile tab
         adb_auto.click(1305.2,2456.4)
 
         self.signals.result.emit('Đang tìm và xử lý point_6')
@@ -269,9 +386,11 @@ class EmulatorWorker(QRunnable):
                 file_name = f"capt_{formatted_datetime}"
                 captcha_path = adb_auto.capture_captcha(save_path="./captchas", name=file_name)
                 try:
-                    # print('captcha_path:', captcha_path)
-                    base64_encoded_str = self.image_to_base64(image_path=captcha_path)
-                    print(base64_encoded_str)
+                    print('captcha_path:', captcha_path)
+                    base64_encoded_str = self.convert_png_to_base64(captcha_path)
+                    result = self.solve_captcha(base64_encoded_str)
+                    print('result', result)
+                    self.signals.debug.emit(("debug", result))
                 except Exception as err:
                     print(err)
                 break
@@ -280,6 +399,9 @@ class EmulatorWorker(QRunnable):
         adb_auto.backHome()
 
         self.signals.result.emit('Hoàn thành thiết lập')
+
+        self.signals.account_configure.emit(self.device)
+
 
         self.signals.device_status.emit((self.device, "free"))
 
@@ -384,8 +506,9 @@ class EmulatorWorker(QRunnable):
                     captcha_path = adb_auto.capture_captcha(save_path="./captchas", name=file_name)
                     try:
                         print('captcha_path:', captcha_path)
-                        base64_encoded_str = self.image_to_base64(image_path=captcha_path)
-                        print(base64_encoded_str)
+                        base64_encoded_str = self.convert_png_to_base64(image_path=captcha_path)
+                        job_id = self.solve_captcha(base64_encoded_str)
+                        print("job_id", job_id)
                     except Exception as err:
                         print(err)
                     break    
@@ -395,26 +518,8 @@ class EmulatorWorker(QRunnable):
     def run(self):
         try:
             adb_auto = Auto(self.device)
-            # tiktok_img_path = "./images/tiktok-phone-1.png"
-
-            # print('--------------------')
-            # print(f"Device {self.device} started")
-            # for i in range(1):
-            #     # Config proxy for the emulator
-            #     # proxy_config_check = self.config_proxy(adb_auto)
-
-            #     # adb_auto.clearApp("com.cell47.College_Proxy")
-            #     # time.sleep(2)
-
-            #     proxy_config_check = True
-            #     if proxy_config_check:
-            #         self.interactTiktok(adb_auto, tiktok_img_path)
-            #     time.sleep(40)
-            #     adb_auto.clearApp("com.ss.android.ugc.trill")
-
             # -------------------------
             self.saveTiktokAccountIntoDevice(adb_auto, [(169.5, 250.0)])
-            # self.saveTiktokAccountIntoDevice(adb_auto, [(169.5+286,250.0)])
  
         except Exception as e:
             print(e)

@@ -1,82 +1,84 @@
 {
     "All category": {
-        "thuongthuong154527": {
-            "username": "thuongthuong154527",
-            "password": "@K43YdZSYVCmD",
-            "": "8M9hNk10LA",
-            "category": "All category",
-            "proxy": "103.121.89.53:6377:sun26377:d6xw5"
-        },
-        "dieunga542914": {
-            "username": "dieunga542914",
-            "password": "@K4bJ2l4P5uli",
-            "": "7tR1sh8EWd",
-            "category": "All category",
-            "proxy": "103.161.17.11:7387:sun87387:x2eau"
-        },
-        "truclam195497": {
-            "username": "truclam195497",
-            "password": "@K4qL6TtSTL60",
-            "": "8wZEp6Nmgm",
-            "category": "All category",
-            "proxy": "103.79.141.15:6456:sun76456:0kl9v"
-        },
-        "thuyngoc325850": {
-            "username": "thuyngoc325850",
-            "password": "@K4DWiMaVRak0",
-            "": "4jKu0I5KnU",
-            "category": "All category"
-        }
-    },
-    "1": {
-        "hoaly376977": {
-            "username": "hoaly376977",
-            "password": "@K4CzCOMxMN2R",
-            "email": "new@hotmail.com",
-            "category": "1",
-            "proxy": "103.162.31.140:6170:sun76170:647t6"
-        }
-    },
-    "2": {
-        "baotran944600": {
-            "username": "baotran944600",
-            "password": "@K4S4J84RmxrZ",
-            "email": "duplicate@hotmail.com",
-            "email_password": "duplicate",
-            "": "3OrW53YfwM",
-            "category": "2",
-            "proxy": "103.121.89.70:7439:sun47439:uroi1"
-        },
-        "thuyvy349879": {
-            "username": "thuyvy349879",
-            "password": "@K4uOO1BRkRzj",
-            "": "0DWSXylxDC",
-            "category": "2",
-            "proxy": "103.3.246.170:6443:sun16443:ydt5z"
-        },
         "ngantruc540928": {
             "username": "ngantruc540928",
             "password": "@K4S7KLonZmma",
-            "email": "duplicate@hotmail.com",
-            "email_password": "duplicate",
-            "": "5AhDJEu6HO",
-            "category": "2",
-            "proxy": "103.79.142.43:6966:sun66966:qchhf"
+            "email": "barabaramoritz16092000@hotmail.com",
+            "email_password": "5AhDJEu6HO",
+            "category": "All category",
+            "device_id": null
         },
-        "thuyngoc325850": {
-            "username": "thuyngoc325850",
-            "password": "@K4DWiMaVRak0",
-            "email": "new account but not duplicated",
-            "": "4jKu0I5KnU",
-            "category": "2",
-            "proxy": "103.121.91.100:5922:sun65922:qv0tk"
+        "hoaly376977": {
+            "username": "hoaly376977",
+            "password": "@K4CzCOMxMN2R",
+            "email": "astridvallely1456@hotmail.com",
+            "email_password": "7FFHEAf06t",
+            "category": "All category",
+            "device_id": null
         },
         "huyenthoai592223": {
             "username": "huyenthoai592223",
             "password": "@K4GGBkMEiKEu",
-            "": "7G9Q6ZHqHk",
-            "category": "2",
-            "proxy": "103.121.89.53:6187:sun26187:d293j"
+            "email": "verladeatherage01031994@hotmail.com",
+            "email_password": "7G9Q6ZHqHk",
+            "category": "All category",
+            "device_id": null
+        },
+        "thuyvy349879": {
+            "username": "thuyvy349879",
+            "password": "@K4uOO1BRkRzj",
+            "email": "angelikacodner7108@hotmail.com",
+            "email_password": "0DWSXylxDC",
+            "category": "All category",
+            "device_id": null
+        },
+        "thuongthuong154527": {
+            "username": "thuongthuong154527",
+            "password": "@K43YdZSYVCmD",
+            "email": "elouisekasperski2906@hotmail.com",
+            "email_password": "8M9hNk10LA",
+            "category": "All category",
+            "device_id": null
+        },
+        "dieunga542914": {
+            "username": "dieunga542914",
+            "password": "@K4bJ2l4P5uli",
+            "email": "jeanneschockley.07101980@hotmail.com",
+            "email_password": "7tR1sh8EWd",
+            "category": "All category",
+            "device_id": null
+        },
+        "truclam195497": {
+            "username": "truclam195497",
+            "password": "@K4qL6TtSTL60",
+            "email": "michealszabat5443@hotmail.com",
+            "email_password": "8wZEp6Nmgm",
+            "category": "All category",
+            "device_id": null
+        },
+        "baotran944600": {
+            "username": "baotran944600",
+            "password": "@K4S4J84RmxrZ",
+            "email": "demetrapechaira280692@hotmail.com",
+            "email_password": "3OrW53YfwM",
+            "category": "All category",
+            "device_id": null
+        },
+        "thuyngoc325850": {
+            "username": "thuyngoc325850",
+            "password": "@K4DWiMaVRak0",
+            "email": "corinelawlis7211@hotmail.com",
+            "email_password": "4jKu0I5KnU",
+            "category": "All category",
+            "device_id": null
+        },
+        "quynhhuong902169": {
+            "username": "quynhhuong902169",
+            "password": "@K4vmTvnQ5X0q",
+            "email": "lindseymunsen8911@hotmail.com",
+            "email_password": "6xr7qVroyL",
+            "category": "All category",
+            "device_id": null
         }
     }
 }
