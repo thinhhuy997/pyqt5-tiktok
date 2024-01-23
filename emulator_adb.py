@@ -1,3 +1,4 @@
+import io
 import json
 import os,time
 
@@ -93,26 +94,60 @@ class EmulatorWorker(QRunnable):
         return formatted_datetime
     
     
-    def image_to_base64(self, image_path):
-        with open(image_path, "rb") as image_file:
-            # Read the image file
-            image_binary = image_file.read()
-            # Encode the image binary data to base64
-            base64_encoded = base64.b64encode(image_binary).decode('utf-8')
-            return base64_encoded
+    # def image_to_base64(self, image_path):
+    #     with open(image_path, "rb") as image_file:
+    #         # Read the image file
+    #         image_binary = image_file.read()
+    #         # Encode the image binary data to base64
+    #         base64_encoded = base64.b64encode(image_binary).decode('utf-8')
+    #         return base64_encoded
     
-    def convert_png_to_base64(self, file_path):
-        with open(file_path, "rb") as image_file:
-            # Read the binary data of the image file
-            image_binary = image_file.read()
+    # def convert_png_to_base64(self, image_path):
+    #     with open(image_path, "rb") as image_file:
+    #         # Read the binary data of the image file
+    #         image_binary = image_file.read()
+
+    #         # Encode the binary data as base64
+    #         base64_encoded = base64.b64encode(image_binary)
+
+    #         # Convert the bytes to a string (decode)
+    #         base64_string = base64_encoded.decode("utf-8")
+
+    #     return base64_string
+
+    def convert_png_to_base64(self, png_file_path, compression_quality=85):
+    # Open the PNG image using Pillow
+        with Image.open(png_file_path) as img:
+            # Convert the PNG image to RGB mode (JPEG doesn't support transparency)
+            img = img.convert("RGB")
+
+            # Create an in-memory binary stream
+            img_stream = io.BytesIO()
+
+            # Save the image as a JPEG with the specified compression quality to the stream
+            # img.save(img_stream, "JPEG", quality=compression_quality)
+            img.save(img_stream, "JPEG")
+
+            # Get the binary data from the stream
+            img_binary = img_stream.getvalue()
 
             # Encode the binary data as base64
-            base64_encoded = base64.b64encode(image_binary)
+            base64_encoded = base64.b64encode(img_binary)
 
             # Convert the bytes to a string (decode)
             base64_string = base64_encoded.decode("utf-8")
 
         return base64_string
+    
+    def convert_png_to_jpg(png_file_path, jpg_file_path, compression_quality=85):
+    # Open the PNG image using Pillow
+        with Image.open(png_file_path) as img:
+            # Convert the PNG image to RGB mode (if it's not already in that mode)
+            img = img.convert("RGB")
+
+            # Save the image as a JPEG with the specified compression quality
+            img.save(jpg_file_path, "JPEG", quality=compression_quality)
+        
     
     def solve_captcha(self, base64_string: str):
         api_token = "zRNjqIDpjur5aRONjGZts7wqewMzDmdZ3FUB5lPrTGIu6KNxJXSi6GrpgdIAMAyVIKn1HG81daaiEQUS"
@@ -132,22 +167,18 @@ class EmulatorWorker(QRunnable):
 
             # Set the headers to indicate that you are sending JSON data
             headers = {'Content-Type': 'application/json'}
-
-            
             
             response = requests.post(url, data=json_data, headers=headers)
             status_code = response.status_code
             try:
                 response = response.json()
-                self.signals.debug.emit(("response", response))
-                self.signals.debug.emit(("success status code", status_code))
+                self.signals.debug.emit((f"{self.device} - response", response))
+                self.signals.debug.emit((f"{self.device} - success status code", status_code))
             except:
-                self.signals.debug.emit(("response text", status_code))
-                self.signals.debug.emit(("error status code", status_code))
+                self.signals.debug.emit((f"{self.device} - response text", status_code))
+                self.signals.debug.emit((f"{self.device} - error status code", status_code))
 
-            return
-
-
+        
             job_id = None
             if response['error'] is False:
                 job_id = response['job_id']
@@ -174,17 +205,23 @@ class EmulatorWorker(QRunnable):
                 response_2 = response_2.json()
 
                 start = 0
-                end = 3
+                end = 60
                 while start < end:
+                    self.signals.debug.emit((f"{self.device} - response 2", response_2))
                     if response_2["status"] == "success":
-                        return response_2["result"]
+                        break
+                        # return response_2["result"]
                     elif response_2["status"] == "running":
                         pass
+                    elif response_2["status"] == "waiting":
+                        pass
                     elif response_2["status"] == "fail":
-                        return response_2["result"]
+                        break
+                        # return response_2["result"]
                     start += 1
+                    time.sleep(2)
 
-            # return "test"
+            return "test"
 
         except Exception as e:
             tb_info = traceback.format_exc()
@@ -264,6 +301,7 @@ class EmulatorWorker(QRunnable):
         adb_auto.backHome()
         point_1 = adb_auto.find("./images/tiktok-phone-1.png")
         adb_auto.click(point_1[0][0], point_1[0][1])
+        time.sleep(2)
         adb_auto.clearApp("com.ss.android.ugc.trill")
         adb_auto.backHome()
         adb_auto.clearApp("com.ss.android.ugc.trill")
@@ -378,7 +416,7 @@ class EmulatorWorker(QRunnable):
         
         self.signals.result.emit('Đang tìm và xử lý point_10 (captcha)')
         start_check_time = time.time()
-        while time.time() - start_check_time < 10:
+        while time.time() - start_check_time < 30:
             # print('Processing point_10 (captcha) ...')
             point_10 = adb_auto.find("./images/tiktok-verify-captcha-label.png")
             if point_10 > [(0, 0)]:
@@ -388,9 +426,11 @@ class EmulatorWorker(QRunnable):
                 try:
                     print('captcha_path:', captcha_path)
                     base64_encoded_str = self.convert_png_to_base64(captcha_path)
-                    result = self.solve_captcha(base64_encoded_str)
-                    print('result', result)
-                    self.signals.debug.emit(("debug", result))
+                    print(base64_encoded_str)
+                    # self.signals.debug.emit(("base64 -",base64_encoded_str))
+                    # capt_result = self.solve_captcha(base64_encoded_str)
+
+                    # self.signals.debug.emit(("capt_result", capt_result))
                 except Exception as err:
                     print(err)
                 break
