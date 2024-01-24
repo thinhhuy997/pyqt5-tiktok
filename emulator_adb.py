@@ -511,8 +511,8 @@ class EmulatorWorker(QRunnable):
             point_16 = adb_auto.find("./images/tiktok-login-success-sign-2.png")
             if point_16 > [(0, 0)]:
                 
-                self.signals.account_configure.emit(self.device)
-                self.signals.device_status.emit((self.device, "free"))
+                # self.signals.account_configure.emit(self.device)
+                # self.signals.device_status.emit((self.device, "free"))
 
                 # Important - Save status connect from device to account to file
                 self.account["device_id"] = self.device

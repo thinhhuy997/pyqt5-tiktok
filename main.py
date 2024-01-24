@@ -979,7 +979,6 @@ class Ui_MainWindow(object):
     
     def display_result(self, result, row):
         print('result:', result)
-        print('row:', row)
         self.changeCellValue(row, self.column_order.index('status'), newValue=str(result))
 
     def display_error(self, error, row):
@@ -1475,7 +1474,6 @@ class Ui_MainWindow(object):
         self.dialog.close()
 
     def saveJsonFile(self, json_data):
-        print('Chạy vào đây')
         file_path = "./defaults/data.json"
         try:
             # Write the JSON data to the selected file
@@ -2183,7 +2181,6 @@ class Ui_MainWindow(object):
 
     def setColortoRow(self, table:QTableWidget, row, color):
         for col in range(table.columnCount()):
-            print(col)
             item = table.item(row, col)
             item.setBackground(color)
     
@@ -2191,18 +2188,23 @@ class Ui_MainWindow(object):
         account = result[0]
         device = result[1]
         status = result[2]
-        print(row)
         if status == True:
             self.changeWorkerCellTableValue(row=row, col=self.worker_column_order.index('device_id'), newValue=device)
             for key in self.cloned_accounts:
                 if self.cloned_accounts[key] == account["username"]:
                     # update device_id for account in self.cloned_accounts
                     self.cloned_accounts[key]["device_id"] = device
-            color = QColor(204, 255, 238)
+                    self.cloned_accounts[key]["phone_configure"] = ConfigureStatus.SUCCESS.value
+            color = Color.SUCCESS.value
             self.setColortoRow(self.t3tableWidget, row, color)
         else:
-            color = QColor(255, 153, 153)
+            color = Color.FAIL.value
             self.setColortoRow(self.t3tableWidget, row, color)
+            self.cloned_accounts[account["username"]]["phone_configure"] = ConfigureStatus.FAIL.value
+
+        self.saveClonedJsonFile(json_data=self.cloned_accounts)
+
+        # self.waiting_workers.pop()
 
     
     
@@ -2244,20 +2246,40 @@ class Ui_MainWindow(object):
                 # self.changeWorkerCellTableValue(row=i, col=self.worker_column_order.index('device_id'), newValue=phone_key)
 
                 # update self.cloned_accounts
-                acc_key = worker_accounts[i][0]["username"]
-                self.cloned_accounts[acc_key]["device_id"] = phone_key
+                # acc_key = worker_accounts[i][0]["username"]
+                # self.cloned_accounts[acc_key]["device_id"] = phone_key
+        
+        
 
+            
+        configured_phones = []
+        for key in self.cloned_accounts:
+            if self.cloned_accounts[key]["device_id"] is not None:
+                configured_phones.append(self.cloned_accounts[key]["device_id"])
 
+        
         for i, account in enumerate(worker_accounts):
             row_i = account[1]
-            if account[0]["device_id"] is not None:
-                tiktok_worker = EmulatorWorker(account[0]["device_id"], account[0])
-                tiktok_worker.signals.result.connect(lambda result, row=row_i: self.display_worker_result(result, row))
-                tiktok_worker.signals.account_configure.connect(lambda configure_status: self.remove_configure_worker(configure_status))
-                tiktok_worker.signals.debug.connect(lambda debug_obj: self.display_debug(debug_obj))
-                tiktok_worker.signals.error.connect(lambda error, row=row_i: self.tiktok_display_error(error, row))
-                tiktok_worker.signals.account_device_connect_status.connect(lambda result, row=row_i: self.change_account_device_status(result, row))
-                self.waiting_workers[account[0]["device_id"]] = tiktok_worker
+            if (account[0]["device_id"] is None) and (account[0]["phone_configure"] == ConfigureStatus.NOT_YET.value):
+                
+                picked_device = None
+                for device in self.phone_devices:
+                    if device not in configured_phones:
+                        picked_device = device
+                        configured_phones.append(picked_device)
+                        break
+                
+                if picked_device is not None:
+                    tiktok_worker = EmulatorWorker(picked_device, account[0])
+                    tiktok_worker.signals.result.connect(lambda result, row=row_i: self.display_worker_result(result, row))
+                    tiktok_worker.signals.account_configure.connect(lambda configure_status: self.remove_configure_worker(configure_status))
+                    tiktok_worker.signals.debug.connect(lambda debug_obj: self.display_debug(debug_obj))
+                    tiktok_worker.signals.error.connect(lambda error, row=row_i: self.tiktok_display_error(error, row))
+                    tiktok_worker.signals.account_device_connect_status.connect(lambda result, row=row_i: self.change_account_device_status(result, row))
+                    # self.waiting_workers[account[0]["device_id"]] = tiktok_worker
+
+                    # NEW
+                    self.threadpool_2.start(tiktok_worker)
 
 
 
@@ -2265,14 +2287,14 @@ class Ui_MainWindow(object):
         # for key in self.phone_devices:
         #     print(self.phone_devices[key])
                 
-        if len(self.waiting_workers) == 0:
-            self.show_error_dialog(err_msg="Các thiết bị (phone) chưa thiết lập đã hết, hãy lắp thêm!")
+        # if len(self.waiting_workers) == 0:
+            # self.show_error_dialog(err_msg="Các thiết bị (phone) chưa thiết lập đã hết, hãy lắp thêm!")
 
 
-        for w_key in self.waiting_workers:
-            if self.phone_devices[w_key]["accounts"] is not None:
-                tik_worker = self.waiting_workers[w_key]
-                self.threadpool_2.start(tik_worker)
+        # for w_key in self.waiting_workers:
+        #     if self.phone_devices[w_key]["accounts"] is not None:
+        #         tik_worker = self.waiting_workers[w_key]
+        #         self.threadpool_2.start(tik_worker)
 
 
 

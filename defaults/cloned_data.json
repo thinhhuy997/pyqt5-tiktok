@@ -32,7 +32,7 @@
         "email": "angelikacodner7108@hotmail.com",
         "email_password": "0DWSXylxDC",
         "category": "All category",
-        "device_id": null,
+        "device_id": "abc123",
         "phone_configure": "NOT_YET"
     },
     "thuongthuong154527": {
@@ -42,7 +42,7 @@
         "email_password": "8M9hNk10LA",
         "category": "All category",
         "device_id": null,
-        "phone_configure": "NOT_YET"
+        "phone_configure": "FAIL"
     },
     "dieunga542914": {
         "username": "dieunga542914",
@@ -51,7 +51,7 @@
         "email_password": "7tR1sh8EWd",
         "category": "All category",
         "device_id": null,
-        "phone_configure": "NOT_YET"
+        "phone_configure": "FAIL"
     },
     "truclam195497": {
         "username": "truclam195497",
