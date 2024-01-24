@@ -29,6 +29,17 @@ from functools import partial
 from adb_ultils import ADB
 from emulator_adb_backup import start_worker
 from emulator_adb import EmulatorWorker
+from PyQt5.QtGui import QColor
+from enum import Enum
+
+class ConfigureStatus(Enum):
+    NOT_YET = "NOT_YET"
+    SUCCESS = "SUCCESS"
+    FAIL = "FAIL"
+
+class Color(Enum):
+    SUCCESS = QColor(204, 255, 238)
+    FAIL = QColor(255, 153, 153)
 
 class PasswordDelegate(QtWidgets.QStyledItemDelegate):
     def initStyleOption(self, option, index):
@@ -446,7 +457,7 @@ class Ui_MainWindow(object):
         self.t3tableWidget = QtWidgets.QTableWidget(self.tab_3)
         self.t3tableWidget.setGeometry(QtCore.QRect(10, 88, 1616, 680))
         self.t3tableWidget.setObjectName("t3tableWidget")
-        self.t3tableWidget.setColumnCount(10)
+        self.t3tableWidget.setColumnCount(8)
         self.t3tableWidget.setRowCount(26)
         item = QtWidgets.QTableWidgetItem()
         self.t3tableWidget.setHorizontalHeaderItem(0, item)
@@ -1065,6 +1076,13 @@ class Ui_MainWindow(object):
 
         for row_index, account_data in enumerate(accounts.values()):
             self.add_row_to_worker_table(row_index, account_data)
+            if account_data["phone_configure"] == "SUCCESS":
+                color = Color.SUCCESS.value
+                self.setColortoRow(self.t3tableWidget, row_index, color)
+
+            if account_data["phone_configure"] == "FAIL":
+                color = Color.FAIL.value
+                self.setColortoRow(self.t3tableWidget, row_index, color)
 
         self.t3tableWidget.setSortingEnabled(__sortingEnabled)
 
@@ -1203,6 +1221,7 @@ class Ui_MainWindow(object):
             # accounts_arr.append(account_obj)
             accounts_obj[account_obj["username"]] = account_obj
             accounts_obj[account_obj["username"]]["device_id"] = None
+            accounts_obj[account_obj["username"]]["phone_configure"] = ConfigureStatus.NOT_YET.value
 
         # self.accounts[current_category] = accounts_arr
         self.accounts[current_category] = accounts_obj
@@ -1456,6 +1475,7 @@ class Ui_MainWindow(object):
         self.dialog.close()
 
     def saveJsonFile(self, json_data):
+        print('Chạy vào đây')
         file_path = "./defaults/data.json"
         try:
             # Write the JSON data to the selected file
@@ -1990,12 +2010,12 @@ class Ui_MainWindow(object):
         # self.innerWorkTabWidget.addTab(self.tab_3, "")
         
         # Create a dialog
-        dialog = QDialog()
-        dialog.setWindowTitle('Thiết Lập Devices')
-        dialog.setGeometry(450, 180, 1000, 390)  # Set the size of the dialog
+        self.dialogConfigDevices = QDialog()
+        self.dialogConfigDevices.setWindowTitle('Thiết Lập Devices')
+        self.dialogConfigDevices.setGeometry(450, 180, 1000, 390)  # Set the size of the dialog
 
         # The Temporary Table Widget
-        self.deviceTable = QtWidgets.QTableWidget(dialog)
+        self.deviceTable = QtWidgets.QTableWidget(self.dialogConfigDevices)
         self.deviceTable.setGeometry(QtCore.QRect(180, 130, 411, 192))
         self.deviceTable.setObjectName("deviceTable")
         self.deviceTable.setColumnCount(10)
@@ -2043,14 +2063,14 @@ class Ui_MainWindow(object):
         layout.addWidget(self.accountsPerDevicelabel , 5, 4, 1, 1)
         
 
-        dialog.setLayout(layout)
+        self.dialogConfigDevices.setLayout(layout)
 
         # Update temp table with the first time when show dialog
         phone_devices = self.phone_devices
         self.add_phone_to_device_table(phone_devices)
         
         # Show the dialog
-        dialog.exec_()
+        self.dialogConfigDevices.exec_()
 
     def update_temp_clone_table(self, category):
         
@@ -2148,6 +2168,10 @@ class Ui_MainWindow(object):
         # remove worker from list
         self.waiting_workers.pop(worker_id)
 
+    # def displayDeviceIdByAccount(self, device_id, row):
+
+    #     self.changeWorkerCellTableValue(row, self.worker_column_order.index('status'), newValue=str(result))
+
     def display_debug(self, debug_obj):
         print('----------------DEBUG-----------------')
         print(debug_obj)
@@ -2156,6 +2180,32 @@ class Ui_MainWindow(object):
     def tiktok_display_error(self, error, row):
         print('error:', error)
         self.changeWorkerCellTableValue(row, self.worker_column_order.index('status'), newValue=f'{error}')
+
+    def setColortoRow(self, table:QTableWidget, row, color):
+        for col in range(table.columnCount()):
+            print(col)
+            item = table.item(row, col)
+            item.setBackground(color)
+    
+    def change_account_device_status(self, result, row):
+        account = result[0]
+        device = result[1]
+        status = result[2]
+        print(row)
+        if status == True:
+            self.changeWorkerCellTableValue(row=row, col=self.worker_column_order.index('device_id'), newValue=device)
+            for key in self.cloned_accounts:
+                if self.cloned_accounts[key] == account["username"]:
+                    # update device_id for account in self.cloned_accounts
+                    self.cloned_accounts[key]["device_id"] = device
+            color = QColor(204, 255, 238)
+            self.setColortoRow(self.t3tableWidget, row, color)
+        else:
+            color = QColor(255, 153, 153)
+            self.setColortoRow(self.t3tableWidget, row, color)
+
+    
+    
 
     def display_device_status(self, device: tuple, row):
         print('device', device)
@@ -2170,35 +2220,44 @@ class Ui_MainWindow(object):
                 print(err)
     
     def addAccountsToDevices(self):
-        selected_rows = [index.row() for index in self.t3tableWidget.selectionModel().selectedRows()]
+        # Hide dialog
+        self.dialogConfigDevices.hide()
+        
+
+        selected_rows = sorted([index.row() for index in self.t3tableWidget.selectionModel().selectedRows()])
         keys = list(self.cloned_accounts.keys())
+
+        # Clear selected rows
+        self.t3tableWidget.clearSelection()
 
         worker_accounts = []
         for row_i in selected_rows:
             key = keys[row_i]
             account = self.cloned_accounts[key]
-            worker_accounts.append(account)
+            worker_accounts.append((account, row_i))
             # self.cloned_accounts[key]["device_id"] = 
 
         for i, phone_key in enumerate(self.phone_devices):
             if self.phone_devices[phone_key]["accounts"] is None: # not link to an account
-                self.phone_devices[phone_key]["accounts"] = worker_accounts[i]["username"]
-                self.changeWorkerCellTableValue(row=i, col=self.worker_column_order.index('device_id'), newValue=phone_key)
+                self.phone_devices[phone_key]["accounts"] = worker_accounts[i][0]["username"]
+
+                # self.changeWorkerCellTableValue(row=i, col=self.worker_column_order.index('device_id'), newValue=phone_key)
 
                 # update self.cloned_accounts
-                acc_key = worker_accounts[i]["username"]
+                acc_key = worker_accounts[i][0]["username"]
                 self.cloned_accounts[acc_key]["device_id"] = phone_key
 
 
         for i, account in enumerate(worker_accounts):
-
-            if account["device_id"] is not None:
-                tiktok_worker = EmulatorWorker(account["device_id"], account)
-                tiktok_worker.signals.result.connect(lambda result, row=i: self.display_worker_result(result, row))
+            row_i = account[1]
+            if account[0]["device_id"] is not None:
+                tiktok_worker = EmulatorWorker(account[0]["device_id"], account[0])
+                tiktok_worker.signals.result.connect(lambda result, row=row_i: self.display_worker_result(result, row))
                 tiktok_worker.signals.account_configure.connect(lambda configure_status: self.remove_configure_worker(configure_status))
                 tiktok_worker.signals.debug.connect(lambda debug_obj: self.display_debug(debug_obj))
                 tiktok_worker.signals.error.connect(lambda error, row=row_i: self.tiktok_display_error(error, row))
-                self.waiting_workers[account["device_id"]] = tiktok_worker
+                tiktok_worker.signals.account_device_connect_status.connect(lambda result, row=row_i: self.change_account_device_status(result, row))
+                self.waiting_workers[account[0]["device_id"]] = tiktok_worker
 
 
 

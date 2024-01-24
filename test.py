@@ -1,26 +1,39 @@
-import base64
+import sys
+from PyQt5.QtWidgets import QApplication, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
+from PyQt5.QtGui import QColor
 
-def convert_png_to_base64(file_path):
-    with open(file_path, "rb") as image_file:
-        # Read the binary data of the image file
-        image_binary = image_file.read()
+class MyTableWidget(QTableWidget):
+    def __init__(self):
+        super().__init__()
 
-        # Encode the binary data as base64
-        base64_encoded = base64.b64encode(image_binary)
+        self.initUI()
 
-        # Convert the bytes to a string (decode)
-        base64_string = base64_encoded.decode("utf-8")
+    def initUI(self):
+        self.setWindowTitle('Colored Cell Example')
 
-    return base64_string
+        # Set the number of rows and columns
+        self.setRowCount(5)
+        self.setColumnCount(3)
 
-def write_base64_to_file(base64_string, output_file_path):
-    with open(output_file_path, "w") as output_file:
-        output_file.write(base64_string)
+        # Fill the cells with data
+        for row in range(5):
+            for col in range(3):
+                item = QTableWidgetItem('Cell {}-{}'.format(row, col))
+                self.setItem(row, col, item)
 
-# Replace "your_image.png" with the path to your PNG file
-png_file_path = "./captchas/capt_20240123_143832.png"
-base64_representation = convert_png_to_base64(png_file_path)
+        # Change the background color of a specific cell
+        self.changeCellColor(2, 1, QColor(255, 0, 0))  # Set color to red for cell (2, 1)
 
-# Replace "output.txt" with the desired output file path
-output_file_path = "output.txt"
-write_base64_to_file(base64_representation, output_file_path)
+    def changeCellColor(self, row, col, color):
+        item = self.item(row, col)
+        if item:
+            item.setBackground(color)
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    window = QWidget()
+    layout = QVBoxLayout(window)
+    tableWidget = MyTableWidget()
+    layout.addWidget(tableWidget)
+    window.show()
+    sys.exit(app.exec_())

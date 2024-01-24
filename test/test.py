@@ -1,54 +1,30 @@
 
-import threading 
-from selenium import webdriver
-import time
-  
-class ScrapeThread(threading.Thread): 
-    def __init__(self, thread_index, delay): 
-        threading.Thread.__init__(self) 
-        # self.url = url
-        self.thread_index = thread_index
-        self.delay = delay
-
-    def test(self, thread_index):
-        for i in range(3):
-            print(f"Luồng số {thread_index} đang chạy vòng i = ", i)
-            time.sleep(self.delay)
-  
-    def run(self):
-        self.test(self.thread_index)
-        # driver = webdriver.Chrome() 
-        # driver.get(self.url) 
-        # page_source = driver.page_source 
-        # driver.close() 
-        # do something with the page source 
+from PIL import Image
+import base64
+from io import BytesIO
+import io
 
 
-    
-  
-urls = [ 
-    'https://en.wikipedia.org/wiki/0', 
-    'https://en.wikipedia.org/wiki/1', 
-    'https://en.wikipedia.org/wiki/2', 
-    'https://en.wikipedia.org/wiki/3', 
-]
+def convert_png_to_jpg_and_base64(png_path):
+    # Open the PNG image
+    with Image.open(png_path) as img:
+        # Create a BytesIO object to store the JPG image
+        jpg_buffer = BytesIO()
 
-ts = [0, 1, 2, 3]
-  
-threads = [] 
-# for url in urls: 
-#     t = ScrapeThread(url) 
-#     t.start() 
-#     threads.append(t) 
+        # Convert the image to RGB before saving as JPEG
+        img = img.convert("RGB")
 
-for index in ts:
-    if index % 2 == 0:
-        delay = 1
-    else:
-        delay = 2 
-    t = ScrapeThread(index, delay) 
-    t.start() 
-    threads.append(t)
-  
-for t in threads: 
-    t.join()
+        # Save the RGB image to the buffer in JPEG format
+        img.save(jpg_buffer, format="JPEG")
+
+        # Encode the JPG image in base64
+        base64_jpg = base64.b64encode(jpg_buffer.getvalue()).decode("utf-8")
+
+    return base64_jpg
+
+png_image_path = "./captchas/capt_20240124_093324.png"
+
+base64_result = convert_png_to_jpg_and_base64(png_image_path)
+
+with open("base64-output.txt", "w") as output_file:
+    output_file.write(base64_result)

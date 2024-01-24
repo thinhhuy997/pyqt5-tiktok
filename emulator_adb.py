@@ -73,6 +73,7 @@ class WorkerSignals(QObject):
     result = pyqtSignal(object)
     error = pyqtSignal(tuple)
     device_status = pyqtSignal(tuple)
+    account_device_connect_status = pyqtSignal(tuple)
     account_configure = pyqtSignal(object)
     debug = pyqtSignal(tuple)
 
@@ -93,30 +94,9 @@ class EmulatorWorker(QRunnable):
 
         return formatted_datetime
     
-    
-    # def image_to_base64(self, image_path):
-    #     with open(image_path, "rb") as image_file:
-    #         # Read the image file
-    #         image_binary = image_file.read()
-    #         # Encode the image binary data to base64
-    #         base64_encoded = base64.b64encode(image_binary).decode('utf-8')
-    #         return base64_encoded
-    
-    # def convert_png_to_base64(self, image_path):
-    #     with open(image_path, "rb") as image_file:
-    #         # Read the binary data of the image file
-    #         image_binary = image_file.read()
-
-    #         # Encode the binary data as base64
-    #         base64_encoded = base64.b64encode(image_binary)
-
-    #         # Convert the bytes to a string (decode)
-    #         base64_string = base64_encoded.decode("utf-8")
-
-    #     return base64_string
 
     def convert_png_to_base64(self, png_file_path, compression_quality=85):
-    # Open the PNG image using Pillow
+        # Open the PNG image using Pillow
         with Image.open(png_file_path) as img:
             # Convert the PNG image to RGB mode (JPEG doesn't support transparency)
             img = img.convert("RGB")
@@ -138,6 +118,11 @@ class EmulatorWorker(QRunnable):
             base64_string = base64_encoded.decode("utf-8")
 
         return base64_string
+
+    
+    def write_base64_to_file(self, base64_string, output_file_path):
+        with open(output_file_path, "w") as output_file:
+            output_file.write(base64_string)
     
     def convert_png_to_jpg(png_file_path, jpg_file_path, compression_quality=85):
     # Open the PNG image using Pillow
@@ -149,7 +134,7 @@ class EmulatorWorker(QRunnable):
             img.save(jpg_file_path, "JPEG", quality=compression_quality)
         
     
-    def solve_captcha(self, base64_string: str):
+    def solve_captcha(self, base64_string: str, type: str):
         api_token = "zRNjqIDpjur5aRONjGZts7wqewMzDmdZ3FUB5lPrTGIu6KNxJXSi6GrpgdIAMAyVIKn1HG81daaiEQUS"
         try:
 
@@ -158,7 +143,7 @@ class EmulatorWorker(QRunnable):
             data = {
                 "api_token": "zRNjqIDpjur5aRONjGZts7wqewMzDmdZ3FUB5lPrTGIu6KNxJXSi6GrpgdIAMAyVIKn1HG81daaiEQUS",
                 "data": {
-                    "type_job_id": "24",
+                    "type_job_id": type,
                     "image_base64": base64_string
                 }
             }
@@ -201,27 +186,31 @@ class EmulatorWorker(QRunnable):
                 # Set the headers to indicate that you are sending JSON data
                 headers = {'Content-Type': 'application/json'}
 
-                response_2 = requests.post(url_2, data=json_data_2, headers=headers)
-                response_2 = response_2.json()
+                
 
                 start = 0
                 end = 60
                 while start < end:
-                    self.signals.debug.emit((f"{self.device} - response 2", response_2))
-                    if response_2["status"] == "success":
-                        break
-                        # return response_2["result"]
-                    elif response_2["status"] == "running":
+                    try:
+                        response_2 = requests.post(url_2, data=json_data_2, headers=headers)
+                        response_2 = response_2.json()
+                        # self.signals.debug.emit((f"{self.device} - response 2", response_2))
+                        if response_2["status"] == "success":
+                            return response_2["result"]
+                        elif response_2["status"] == "running":
+                            pass
+                        elif response_2["status"] == "waiting":
+                            pass
+                        elif response_2["status"] == "fail":
+                            return response_2["result"]
+                    except:
                         pass
-                    elif response_2["status"] == "waiting":
-                        pass
-                    elif response_2["status"] == "fail":
-                        break
-                        # return response_2["result"]
+
+                    
                     start += 1
                     time.sleep(2)
 
-            return "test"
+            return None
 
         except Exception as e:
             tb_info = traceback.format_exc()
@@ -295,15 +284,14 @@ class EmulatorWorker(QRunnable):
             
     
     def saveTiktokAccountIntoDevice(self, adb_auto: Auto, app_img_path: str):
+
         self.signals.device_status.emit((self.device, "busy"))
-        
+
         self.signals.result.emit('Đang tiến hành thiết lập...')
         adb_auto.backHome()
         point_1 = adb_auto.find("./images/tiktok-phone-1.png")
         adb_auto.click(point_1[0][0], point_1[0][1])
-        time.sleep(2)
-        adb_auto.clearApp("com.ss.android.ugc.trill")
-        adb_auto.backHome()
+        time.sleep(4)
         adb_auto.clearApp("com.ss.android.ugc.trill")
 
         # start app
@@ -414,144 +402,128 @@ class EmulatorWorker(QRunnable):
                 adb_auto.click(point_9[0][0], point_9[0][1])
                 break
         
+        # RESOLVE CAPTCHA...
         self.signals.result.emit('Đang tìm và xử lý point_10 (captcha)')
         start_check_time = time.time()
         while time.time() - start_check_time < 30:
             # print('Processing point_10 (captcha) ...')
             point_10 = adb_auto.find("./images/tiktok-verify-captcha-label.png")
+            point_11 = adb_auto.find("./images/tiktok-verify-captcha-type-2-label.png")
             if point_10 > [(0, 0)]:
-                formatted_datetime = self.get_date_time()
-                file_name = f"capt_{formatted_datetime}"
-                captcha_path = adb_auto.capture_captcha(save_path="./captchas", name=file_name)
-                try:
-                    print('captcha_path:', captcha_path)
-                    base64_encoded_str = self.convert_png_to_base64(captcha_path)
-                    print(base64_encoded_str)
-                    # self.signals.debug.emit(("base64 -",base64_encoded_str))
-                    # capt_result = self.solve_captcha(base64_encoded_str)
-
-                    # self.signals.debug.emit(("capt_result", capt_result))
-                except Exception as err:
-                    print(err)
-                break
-        
-        # return to the main screen
-        adb_auto.backHome()
-
-        self.signals.result.emit('Hoàn thành thiết lập')
-
-        self.signals.account_configure.emit(self.device)
-
-
-        self.signals.device_status.emit((self.device, "free"))
-
-
-    def interactTiktok(self, adb_auto: Auto, app_img_path: str) -> None:
-        app_started_check = False
-        start_check_time = time.time()
-        while time.time() - start_check_time < 10:
-            point_1 = adb_auto.find(app_img_path)
-            if point_1 > [(0,0)]:
-                print('clicked point_1')
-                adb_auto.click(point_1[0][0], point_1[0][1])
-                app_started_check = True
-                break
-
-        if app_started_check:
-            start_check_time = time.time()
-            while time.time() - start_check_time < 20:
-                point_2 = adb_auto.find("./images/tiktok-agree-and-continue.png")
-                if point_2 > [(0, 0)]:
-                    adb_auto.click(point_2[0][0], point_2[0][1])
-                    break
-            
-            start_check_time = time.time()
-            while time.time() - start_check_time < 10:
-                point_3 = adb_auto.find("./images/tiktok-skip-interest.png")
-                if point_3 > [(0, 0)]:
-                    adb_auto.click(point_3[0][0], point_3[0][1])
-                    break
-
-            start_check_time = time.time()
-            while time.time() - start_check_time < 10:
-                point_4 = adb_auto.find("./images/tiktok-start-watching.png")
-                if point_4 > [(0, 0)]:
-                    adb_auto.click(point_4[0][0], point_4[0][1])
-                    break
-
-            start_check_time = time.time()
-            while time.time() - start_check_time < 10:
-                point_5 = adb_auto.find("./images/tiktok-swipe-up-for-more.png")
-                if point_5 > [(0, 0)]:
-                    print('Swipped up')
-                    adb_auto.swipe(768.6,1810.5, 768.6,400.8)
-                    time.sleep(0.2)
-                    adb_auto.swipe(768.6,1810.5, 768.6,600.8)
-                    break
-
-            # 1305.2,2456.4
-            # Click profile button
-            time.sleep(1)
-            adb_auto.click(1305.2,2456.4)
-
-            # start_check_time = time.time()
-            # while time.time() - start_check_time < 10:
-            #     print('check point_6')
-            #     point_6 = adb_auto.find("./images/tiktok-profile-button.png")
-            #     if point_6 > [(0, 0)]:
-            #         print('point_6', point_6)
-            #         adb_auto.click(point_6[0][0], point_6[0][1])
-            #         break
-
-            start_check_time = time.time()
-            while time.time() - start_check_time < 10:
-                point_6 = adb_auto.find("./images/tiktok-login-button.png")
-                if point_6 > [(0, 0)]:
-                    adb_auto.click(point_6[0][0], point_6[0][1])
-                    break
-            
-            start_check_time = time.time()
-            while time.time() - start_check_time < 10:
-                point_7 = adb_auto.find("./images/tiktok-username-login-tab.png")
-                if point_7 > [(0, 0)]:
-                    adb_auto.click(point_7[0][0], point_7[0][1])
-                    time.sleep(0.5)
-                    adb_auto.sendText(self.account["username"]) # send username input
-                    break
-            
-            start_check_time = time.time()
-            while time.time() - start_check_time < 10:
-                point_8 = adb_auto.find("./images/tiktok-login-password-input.png")
-                if point_8 > [(0, 0)]:
-                    adb_auto.click(point_8[0][0], point_8[0][1])
-                    time.sleep(0.5)
-                    adb_auto.sendText(self.account["password"]) # send password input
-                    break
-
-            
-            start_check_time = time.time()
-            while time.time() - start_check_time < 10:
-                point_9 = adb_auto.find("./images/tiktok-login-form-button.png")
-                if point_9 > [(0, 0)]:
-                    adb_auto.click(point_9[0][0], point_9[0][1])
-                    break
-            
-            
-            start_check_time = time.time()
-            while time.time() - start_check_time < 10:
-                point_10 = adb_auto.find("./images/tiktok-verify-captcha-label.png")
-                if point_10 > [(0, 0)]:
+                attempt = 1
+                while attempt <= 4:
                     formatted_datetime = self.get_date_time()
                     file_name = f"capt_{formatted_datetime}"
                     captcha_path = adb_auto.capture_captcha(save_path="./captchas", name=file_name)
                     try:
-                        print('captcha_path:', captcha_path)
-                        base64_encoded_str = self.convert_png_to_base64(image_path=captcha_path)
-                        job_id = self.solve_captcha(base64_encoded_str)
-                        print("job_id", job_id)
-                    except Exception as err:
-                        print(err)
-                    break    
+                        base64_representation = self.convert_png_to_base64(captcha_path)
+                        formatted_datetime = self.get_date_time()
+                        # output_file_path = f"./outputs/base64_{self.device}_{formatted_datetime}"
+                        # self.write_base64_to_file(base64_representation, output_file_path)
+                        capt_result = self.solve_captcha(base64_representation, type="24")
+                        self.signals.debug.emit(("capt_result", capt_result))
+                        if capt_result is not None:
+                            cordinates = capt_result
+                            self.signals.debug.emit(('cordinates', cordinates))
+                            x1,y1,x2,y2 = cordinates.split('|')
+                            x1 = int(x1)
+                            y1 = int(y1)
+                            x2 = int(x2)
+                            y2 = int(y2)
+                            time.sleep(0.5)
+                            adb_auto.swipe(x1,y1,x2,y2)
+                        else:
+                            print('Resolve captcha not successfully!')
+                        
+                    except Exception as e:
+                        tb_info = traceback.format_exc()
+                        self.signals.error.emit((type(e), e.args, tb_info))
+
+                    time.sleep(5)
+                    point_10 = adb_auto.find("./images/tiktok-verify-captcha-label.png")
+                    if point_10 > [(0, 0)]:
+                        attempt+=1
+                    else:
+                        break
+                break
+        
+
+            if point_11 > [(0, 0)]:
+                attempt = 1
+                while attempt <= 4:
+                    formatted_datetime = self.get_date_time()
+                    file_name = f"capt2_{formatted_datetime}"
+                    captcha_path = adb_auto.capture_captcha(save_path="./captchas", name=file_name)
+                    try:
+                        base64_representation = self.convert_png_to_base64(captcha_path)
+                        formatted_datetime = self.get_date_time()
+                        capt_result = self.solve_captcha(base64_representation, type="25")
+                        self.signals.debug.emit(("capt2_result", capt_result))
+                        if capt_result is not None:
+                            point_12 = adb_auto.find("./images/tiktok-confirm-captcha-type-2-button.png")
+                            cordinates = capt_result
+                            x1,y1,x2,y2 = cordinates.split('|')
+                            x1 = int(x1)
+                            y1 = int(y1)
+                            x2 = int(x2)
+                            y2 = int(y2)
+                            adb_auto.click(x1, y1)
+                            time.sleep(0.2)
+                            adb_auto.click(x2, y2)
+                            time.sleep(1)
+                            adb_auto.click(point_12[0][0], point_12[0][1])
+
+                            # Check whether solve
+                            time.sleep(5)
+                            point_11 = adb_auto.find("./images/tiktok-verify-captcha-type-2-label.png")
+                            if point_11 > [(0, 0)]:
+                                attempt+=1
+                            else:
+                                break
+                        else:
+                            print('Resolve captcha not successfully!')
+                        
+                    except Exception as e:
+                        tb_info = traceback.format_exc()
+                        self.signals.error.emit((type(e), e.args, tb_info))
+                break
+
+        # Click Deny-access-contacts button
+        self.signals.result.emit(f"Đang tìm và xử lý button DENY_ACCESS_CONTACTS")
+        start_check_time = time.time()
+        while time.time() - start_check_time < 20:
+            point_15 = adb_auto.find("./images/deny-access-contacts.png")
+            if point_15 > [(0, 0)]:
+                time.sleep(0.5)
+                adb_auto.click(point_15[0][0], point_15[0][1])
+                break
+        
+        
+        # Click login tab
+        self.signals.result.emit(f"Đang tìm tab profile")
+        adb_auto.click(1305.2,2456.4)
+
+
+        # Click Deny-access-contacts button
+        self.signals.result.emit(f"Đang kiểm tra trạng thái đang nhập")
+        start_check_time = time.time()
+        while time.time() - start_check_time < 20:
+            point_16 = adb_auto.find("./images/tiktok-login-success-sign-2.png")
+            if point_16 > [(0, 0)]:
+                
+                self.signals.account_configure.emit(self.device)
+                self.signals.device_status.emit((self.device, "free"))
+
+                # Important - Save status connect from device to account to file
+                self.account["device_id"] = self.device
+                self.signals.result.emit('Thiết lập thành công!')
+                self.signals.account_device_connect_status.emit((self.account, self.device, True))
+                time.sleep(10)
+                return
+
+        self.signals.result.emit('Thiết lập thất bại!')
+        self.signals.account_device_connect_status.emit((self.account, self.device, False))
+        return
 
 
     @pyqtSlot()                
