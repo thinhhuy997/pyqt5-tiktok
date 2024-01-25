@@ -318,7 +318,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.actionTab)
 
         # NEW - Right click menu
-        self.tableWidget.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.tableWidget.setContextMenuPolicy(10)
         self.tableWidget.customContextMenuRequested.connect(self.showContextMenu)
 
 
@@ -433,8 +433,13 @@ class Ui_MainWindow(object):
         self.t3_cloneAccountBtn.setObjectName("t3_cloneAccountBtn")
         self.t3_cloneAccountBtn.clicked.connect(self.t3_ShowDialogCloneAccounts)
 
+        self.t3_addProxyBtn = QtWidgets.QPushButton(self.tab_3)
+        self.t3_addProxyBtn.setGeometry(QtCore.QRect(121, 54, 100, 23))
+        self.t3_addProxyBtn.setObjectName("t3_addProxyBtn")
+        self.t3_addProxyBtn.clicked.connect(self.show_add_proxies_for_worker_dialog)
+
         self.t3_configureDeviceBtn = QtWidgets.QPushButton(self.tab_3)
-        self.t3_configureDeviceBtn.setGeometry(QtCore.QRect(120, 54, 100, 23))
+        self.t3_configureDeviceBtn.setGeometry(QtCore.QRect(231, 54, 100, 23))
         self.t3_configureDeviceBtn.setObjectName("t3_configureDeviceBtn")
         self.t3_configureDeviceBtn.clicked.connect(self.t3_ShowDialogConfigDevices)
         self.t3_configureDeviceBtn.setEnabled(False)
@@ -487,6 +492,10 @@ class Ui_MainWindow(object):
 
         self.t3tableWidget.setSelectionMode(QTableWidget.MultiSelection)
         self.t3tableWidget.itemSelectionChanged.connect(self.selection_changed)
+
+        # NEW - Right click menu
+        self.t3tableWidget.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.t3tableWidget.customContextMenuRequested.connect(self.show_worker_context_menu)
 
         self.t3SaveConfigBtn.clicked.connect(self.t3_saveConfig)
         self.t3EditConfigBtn.clicked.connect(self.t3_editConfig)
@@ -602,6 +611,7 @@ class Ui_MainWindow(object):
         self.t3_connectedDevicesLabel.setText(_translate("MainWindow", "Connected devices:"))
         self.t3_reloadDevicesBtn.setText(_translate("MainWindow", "Reload"))
         self.t3_cloneAccountBtn.setText(_translate("MainWindow", "Thêm tài khoản"))
+        self.t3_addProxyBtn.setText(_translate("MainWindow", "Thêm proxy"))
         self.t3_configureDeviceBtn.setText(_translate("MainWindow", "Thiết lập devices"))
 
         # item = self.t3tableWidget.horizontalHeaderItem(0)
@@ -829,6 +839,56 @@ class Ui_MainWindow(object):
 
             
 
+    def show_worker_context_menu(self, position):
+        selected_rows = set(index.row() for index in self.t3tableWidget.selectionModel().selectedRows())
+
+        def create_action(from_cate, to_cate):
+            return partial(self.remove_account, selected_rows, from_cate, to_cate)
+
+        if len(selected_rows) > 0:
+            # Convert the widget coordinates to global coordinates
+            global_pos = self.t3tableWidget.mapToGlobal(position)
+
+            # Create a context menu
+            context_menu = QMenu(self.t3tableWidget)
+
+            # Add title action (disabled and with a different font)
+            delete_action = context_menu.addAction("Xóa")
+            title_font = delete_action.font()
+            title_font.setBold(True)
+            delete_action.setFont(title_font)
+
+            delete_action.triggered.connect(lambda: self.delete_cloned_accounts(selected_rows))
+
+            # Creating a submenu under the "File" menu
+            # removing_account_menu = QMenu('Chuyển category')
+
+            context_menu.exec_(global_pos)
+
+    def delete_cloned_accounts(self, selected_rows):
+
+        # print(f"selected_rows: {selected_rows} - type: {type(selected_rows)}")
+        sorted_rows = sorted(selected_rows)
+        need_to_del_keys = []
+        for i, key in enumerate(self.cloned_accounts):
+            if i in sorted_rows:
+                need_to_del_keys.append(key)
+
+        delete_confirm = self.show_confirm_dialog(question_text=f"Bạn có chắc muốn xóa {len(need_to_del_keys)} tài khoản này?")
+        self.t3tableWidget.clearSelection()
+
+        if delete_confirm:
+            for del_key in need_to_del_keys:
+                print(f'Đã xóa cloned account: {del_key}')
+                self.cloned_accounts.pop(del_key)
+
+        # update into default file
+        self.saveClonedJsonFile(json_data=self.cloned_accounts)
+        # update table
+        self.add_accounts_to_worker_table(accounts=self.cloned_accounts)
+                
+
+        
     
 
     def remove_account(self, selected_rows, from_cate, to_cate):
@@ -1096,6 +1156,7 @@ class Ui_MainWindow(object):
             if key == "actions":
                 button = QPushButton("Start")
                 button.clicked.connect(lambda: self.start_adb_worker(row_index))
+                button.setEnabled(False)
                 item = QtWidgets.QTableWidgetItem()
                 self.t3tableWidget.setCellWidget(row_index, column_index, button)
 
@@ -1524,6 +1585,51 @@ class Ui_MainWindow(object):
         # Show the dialog
         self.dialog.exec_()
 
+    def show_add_proxies_for_worker_dialog(self):
+        if self.t3tableWidget.rowCount() == 0:
+            return self.show_error_dialog(err_msg="Bạn phải thêm tài khoản trước khi thêm proxy")
+
+        # Create a dialog
+        self.t3_proxy_dialog = QDialog()
+        self.t3_proxy_dialog.setWindowTitle('Thêm proxy')
+        self.t3_proxy_dialog.setGeometry(450, 180, 868, 390)  # Set the size of the dialog
+
+        # Create a text edit box
+        text_edit = QTextEdit(self.t3_proxy_dialog)
+        text_edit.setGeometry(10, 10, 768, 360)
+
+        # Add Save button to close the dialog
+        save_button = QPushButton('Thêm', self.t3_proxy_dialog)
+        save_button.clicked.connect(lambda: self.t3_onSaveAddProxies(text_edit.toPlainText()))
+
+        # Set up the layout
+        dialog_layout = QVBoxLayout()
+        dialog_layout.addWidget(text_edit)
+        dialog_layout.addWidget(save_button)
+
+        self.t3_proxy_dialog.setLayout(dialog_layout)
+
+        # Show the dialog
+        self.t3_proxy_dialog.exec_()
+
+    def t3_onSaveAddProxies(self, proxy_lines_text):
+        proxy_lines = proxy_lines_text.splitlines()
+        
+        i = 0
+        for key in self.cloned_accounts:
+            if i >= len(proxy_lines):
+                i = 0
+            self.cloned_accounts[key]["proxy"] = proxy_lines[i]
+            i += 1
+
+        self.add_accounts_to_worker_table(accounts=self.cloned_accounts)
+        # update to json default file
+        self.saveClonedJsonFile(json_data=self.cloned_accounts)
+
+        print('Added proxies to worker table successfully!')
+
+
+
     def onSaveAddProxiesClicked(self, text):
         current_category = self.category.currentText()
         if current_category == "All category":
@@ -1681,25 +1787,29 @@ class Ui_MainWindow(object):
             self.add_accounts_to_temp_table(processed_accounts)
 
     def t3_saveConfig(self):
+        print('chạy vào đây!')
         live_src = self.t3LiveSrclineEdit.text()
         work_time_text = self.t3WorkTimelineEdit.text()
-        self.t3LiveSrclineEdit.setEnabled(False)
-        self.t3WorkTimelineEdit.setEnabled(False)
+
         if len(live_src) <= 0:
             return self.show_error_dialog(err_msg='Vui lòng nhập "Livestream (nguồn)".')
-        if live_src[0] != "@":
-            return self.show_error_dialog(err_msg='"Livestream (nguồn)" không đúng định dạng (@id), hãy thử lại!')
+
         if len(work_time_text) <= 0:
             return self.show_error_dialog(err_msg='Vui lòng nhập "Work time".')
 
-        self.tiktok_socket_worker = TiktokSocketWorker(live_id=live_src)
-        self.tiktok_socket_worker.signals.con_status.connect(self.changeEditConfigStatus)
-        self.tiktok_socket_worker.signals.result.connect(self.changeLiveConnectionStatus)
-        self.tiktok_socket_worker.signals.error.connect(self.showLiveConnectionError)
+        self.t3LiveSrclineEdit.setEnabled(False)
+        self.t3WorkTimelineEdit.setEnabled(False)
+
+        # SET ENABLE FOR START BUTTON IN ACTION COLUMN
+        for row_i, key in enumerate(self.cloned_accounts):
+            account = self.cloned_accounts[key]
+            if (account["device_id"] is not None) and (account["phone_configure"] == ConfigureStatus.SUCCESS.value):
+                button = self.t3tableWidget.cellWidget(row_i, self.worker_column_order.index('actions'))
+                button.setEnabled(True)
+
+        self.t3SaveConfigBtn.setEnabled(False)
         
 
-        # Execute the worker in the thread pool
-        self.threadpool_1.start(self.tiktok_socket_worker)
 
         
 
@@ -1741,49 +1851,43 @@ class Ui_MainWindow(object):
         return all_data
 
 
-    def start_adb_worker(self, row_index):
+    def start_adb_worker(self, row_i):
+        plugged_devices = ADB.get_devices()
+        active_devices = []
+
         if len(self.phone_devices) == 0:
             return self.show_error_dialog(err_msg="Không có thiết bị (phone) nào hiện đang được kết nối!")
-
-
-        workers = {}
-        t3_curr_category = self.t3_category.currentText()
-        if t3_curr_category == "All category":
-            for account_obj in self.accounts.values():
-                workers.update(account_obj)
-            keys = list(workers.keys())
-            worker_key = keys[row_index]
-            this_worker = workers[worker_key]
-            # print(this_worker) - {'username': 'huyenthoai592223', 'password': '@K4GGBkMEiKEu', '': '7G9Q6ZHqHk', 'category': '2'}
-        else:
-            workers = self.accounts[t3_curr_category]
-            keys = list(workers.keys())
-            worker_key = keys[row_index]
-            this_worker = workers[worker_key]
         
-        # Temporarily unused this
-        if this_worker.get('proxy') is None:
-            self.show_error_dialog('Tài khoản này chưa có proxy, hãy thêm vào và thử lại!')
-        else:
-            print(self.phone_devices)
-            for i,device in enumerate(self.phone_devices):
-                if device['status'] == "free":
-                    chosen_device = self.phone_devices[i]
-                    self.phone_devices[i]["status"] = "busy"
-                    break
+        cloned_accounts_keys = list(self.cloned_accounts.keys())
+        
+        for i in range(row_i, len(self.cloned_accounts)):
+            key = cloned_accounts_keys[i]
+            proxy = self.cloned_accounts[key]["proxy"]
+            if self.cloned_accounts[key]["device_id"] is not None and len(proxy) > 0:
+                device_id = self.cloned_accounts[key]["device_id"]
+                active_devices.append((device_id, i, proxy)) #.append((device_id, row_that_device_belong, proxy))
 
-            # threading.Thread(target=start_worker, args=(chosen_device["name"], this_worker)).start()
-            # thread_count = len(ADB.get_devices())
-            # proxies = []
-            # p_count = 0
-            # with open('./resources/proxy-101-200.txt') as f:
-                # proxies = f.read().split('\n')
+        live_configure = {
+            "live_source": self.t3LiveSrclineEdit.text(),
+            "work_time": self.t3WorkTimelineEdit.text()
+        }
 
-            # for i in range(thread_count):
-            #     worker_index = i
-            #     threading.Thread(target=start_worker, args=(worker_index, proxies[p_count])).start()
-            #     p_count += 1
 
+        for device in active_devices:
+
+            if device[0] in plugged_devices:
+                row_index = device[1]
+                proxy = device[2]
+                interact_tiktok_worker = EmulatorWorker(device[0], account=None, proxy=proxy, configure=live_configure)
+                interact_tiktok_worker.signals.result.connect(lambda result, row=row_index: self.display_worker_result(result, row))
+                interact_tiktok_worker.signals.debug.connect(lambda debug_obj: self.display_debug(debug_obj))
+                interact_tiktok_worker.signals.error.connect(lambda error, row=row_index: self.tiktok_display_error(error, row))
+                # self.waiting_workers[account[0]["device_id"]] = tiktok_worker
+                # NEW
+                self.threadpool_2.start(interact_tiktok_worker)
+            else:
+                print(f'device "{device}" is not plugged')
+            
 
     def t3_ShowDialogCloneAccounts(self):
 
@@ -2270,7 +2374,7 @@ class Ui_MainWindow(object):
                         break
                 
                 if picked_device is not None:
-                    tiktok_worker = EmulatorWorker(picked_device, account[0])
+                    tiktok_worker = EmulatorWorker(picked_device, account[0], proxy=None, configure=None)
                     tiktok_worker.signals.result.connect(lambda result, row=row_i: self.display_worker_result(result, row))
                     tiktok_worker.signals.account_configure.connect(lambda configure_status: self.remove_configure_worker(configure_status))
                     tiktok_worker.signals.debug.connect(lambda debug_obj: self.display_debug(debug_obj))

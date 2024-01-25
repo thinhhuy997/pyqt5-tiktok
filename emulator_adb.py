@@ -22,8 +22,12 @@ from PyQt5.QtCore import Qt, QRunnable, QObject, pyqtSlot, pyqtSignal, QThreadPo
 
 
 class Auto():
-    def __init__(self,handle):
+    def __init__(self, handle):
         self.handle = handle
+    def set_proxy(self, proxy):
+        os.system(f"adb -s {self.handle} shell settings put global http_proxy {proxy}")
+    def remove_proxy(self):
+        os.system(f"adb -s {self.handle} shell settings put global http_proxy :0")
     def screen_capture(self,name):
         os.system(f"adb -s {self.handle} exec-out screencap -p > {name}.png ")
     def capture_captcha(self, save_path, name) -> str:
@@ -78,10 +82,12 @@ class WorkerSignals(QObject):
     debug = pyqtSignal(tuple)
 
 class EmulatorWorker(QRunnable):
-    def __init__(self, device_name: str, account: str) -> None:
+    def __init__(self, device_name: str, account: str|None, proxy:str|None, configure: dict|None) -> None:
         super(EmulatorWorker, self).__init__()
         self.device = device_name
         self.account = account
+        self.proxy = proxy
+        self.configure = configure
 
         self.signals = WorkerSignals()
 
@@ -132,7 +138,6 @@ class EmulatorWorker(QRunnable):
 
             # Save the image as a JPEG with the specified compression quality
             img.save(jpg_file_path, "JPEG", quality=compression_quality)
-        
     
     def solve_captcha(self, base64_string: str, type: str):
         api_token = "zRNjqIDpjur5aRONjGZts7wqewMzDmdZ3FUB5lPrTGIu6KNxJXSi6GrpgdIAMAyVIKn1HG81daaiEQUS"
@@ -216,11 +221,6 @@ class EmulatorWorker(QRunnable):
             tb_info = traceback.format_exc()
             self.signals.error.emit((type(e), e.args, tb_info))
 
-
-
-
-
-
     def config_proxy(self, adb_auto: Auto) -> bool:
         locating_img_path = "./images/proxy-college-phone-1.png"
         proxy = self.account["proxy"].split(":")
@@ -281,7 +281,6 @@ class EmulatorWorker(QRunnable):
                 print("Lỗi khi config proxy:", err)
                 traceback.print_exc()
                 return False #Set up proxy Failed!
-            
     
     def saveTiktokAccountIntoDevice(self, adb_auto: Auto, app_img_path: str):
 
@@ -381,15 +380,21 @@ class EmulatorWorker(QRunnable):
                 time.sleep(0.5)
                 adb_auto.sendText(self.account["username"]) # send username input
                 break
+
+        self.signals.result.emit('Đang tìm và xử lý button continue')
+        start_check_time = time.time()
+        while time.time() - start_check_time < 10:
+            button_continue = adb_auto.find("./images/email-username-continue-button.png")
+            if button_continue > [(0, 0)]:
+                adb_auto.click(button_continue[0][0], button_continue[0][1])
+                break
         
         self.signals.result.emit('Đang tìm và xử lý point_8')
         start_check_time = time.time()
         while time.time() - start_check_time < 10:
             # print('Processing point_8 ...')
-            point_8 = adb_auto.find("./images/tiktok-login-password-input.png")
+            point_8 = adb_auto.find("./images/tiktok-password-input.png")
             if point_8 > [(0, 0)]:
-                adb_auto.click(point_8[0][0], point_8[0][1])
-                time.sleep(0.5)
                 adb_auto.sendText(self.account["password"]) # send password input
                 break
 
@@ -397,7 +402,7 @@ class EmulatorWorker(QRunnable):
         start_check_time = time.time()
         while time.time() - start_check_time < 10:
             # print('Processing point_9 ...')
-            point_9 = adb_auto.find("./images/tiktok-login-form-button.png")
+            point_9 = adb_auto.find("./images/tiktok-login-button-2.png")
             if point_9 > [(0, 0)]:
                 adb_auto.click(point_9[0][0], point_9[0][1])
                 break
@@ -525,13 +530,98 @@ class EmulatorWorker(QRunnable):
         self.signals.account_device_connect_status.emit((self.account, self.device, False))
         return
 
+    def interact_tiktok(self, adb_auto: Auto):
+        try:
+            #########################(STEP 0 - SET PROXY)##############################
+            self.signals.result.emit(f'Đang tiến hành set proxy {self.proxy}')
+            adb_auto.remove_proxy()
+            time.sleep(1)
+            adb_auto.set_proxy(self.proxy)
+            
 
+            #########################(STEP 1 - BACK TO THE HOME SCREEN)##############################
+            time.sleep(2)
+            self.signals.result.emit('Đang tiến hành tương tác...')
+            adb_auto.backHome()
+            time.sleep(2)
+
+            #########################(STEP 2 - START THE TIKTOK APP)##############################
+            self.signals.result.emit('Đang mở app tiktok')
+            point_1 = adb_auto.find("./images/tiktok-phone-1.png")
+            adb_auto.click(point_1[0][0], point_1[0][1])
+            
+            #########################(STEP 3 - LOCATE TO THE TIKTOK HOME SCREEN)##############################
+            self.signals.result.emit('Chuyển qua màn hình chính của tiktok')
+            start_check_time = time.time()
+            while time.time() - start_check_time < 20:
+                point_2 = adb_auto.find("./images/tiktok-home-tab.png")
+                if point_2 > [(0, 0)]:
+                    time.sleep(0.5)
+                    adb_auto.click(point_2[0][0], point_2[0][1])
+
+            #########################(STEP 4 - SWIPE UP WITH A FEW TIMES)##############################
+            self.signals.result.emit('Lướt random vài lần...')
+            random_num = random.randint(2, 10)
+            time.sleep(1)
+            for i in range(random_num):
+                ran_sleep = random.uniform(0.4, 1.4)
+                adb_auto.swipe(766.8,1810.5, 768.6,600.8)
+                time.sleep(ran_sleep)
+
+            
+            #########################(STEP 5 - SEARCH LIVESTREAM)##############################
+            self.signals.result.emit('Đang tìm livestream nguồn...')
+            start_check_time = time.time()
+            while time.time() - start_check_time < 20:
+                point_3 = adb_auto.find("./images/tiktok-create-new-button.png")
+                if point_3 > [(0, 0)]:
+                    time.sleep(0.5)
+                    adb_auto.click(1326.9,185.0)
+                    time.sleep(1)
+                    adb_auto.sendText(self.configure["live_source"])
+                    time.sleep(0.5)
+                    adb_auto.enter()
+
+            #########################(STEP 6 - CLICK LIVE TAB)##############################
+            self.signals.result.emit('Chuyển qua tab LIVE')
+            start_check_time = time.time()
+            while time.time() - start_check_time < 20:
+                point_4 = adb_auto.find("./images/tiktok-live-tab.png")
+                if point_4 > [(0, 0)]:
+                    time.sleep(0.5)
+                    adb_auto.click(point_4[0][0], point_4[0][1])
+
+            #########################(STEP 7 - CLICK FIRST LIVESTREAM)##############################
+            adb_auto.click(373.2,1329.4)
+            
+                    
+
+        except Exception as e:
+            print(e)
+        finally:
+            pass
+            #########################(STEP FINAL - BACK TO PROFILE TAB)##############################
+            # time.sleep(1)
+            # self.signals.result.emit('Trở về tab profile')
+            # adb_auto.click(1305.2,2456.4)
+            # time.sleep(0.3)
+            # adb_auto.click(1305.2,2456.4)
+            # time.sleep(0.3)
+            # adb_auto.click(1305.2,2456.4)
+
+
+        
     @pyqtSlot()                
     def run(self):
         try:
             adb_auto = Auto(self.device)
-            # -------------------------
-            self.saveTiktokAccountIntoDevice(adb_auto, [(169.5, 250.0)])
+            # Configure accounts with phones
+            if self.account is not None:
+                self.saveTiktokAccountIntoDevice(adb_auto, [(169.5, 250.0)])
+            else: #Interactions
+                print("account:", self.account)
+                print(f"{self.device} - Interacting...")
+                self.interact_tiktok(adb_auto)
  
         except Exception as e:
             print(e)
