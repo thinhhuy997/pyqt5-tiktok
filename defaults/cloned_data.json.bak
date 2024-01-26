@@ -6,7 +6,8 @@
         "email_password": "5AhDJEu6HO",
         "category": "All category",
         "device_id": "ce011711e365a00304",
-        "phone_configure": "SUCCESS"
+        "phone_configure": "SUCCESS",
+        "proxy": "192.168.1.15:9002"
     },
     "huyenthoai592223": {
         "username": "huyenthoai592223",
@@ -14,8 +15,9 @@
         "email": "verladeatherage01031994@hotmail.com",
         "email_password": "7G9Q6ZHqHk",
         "category": "All category",
-        "device_id": "asdb",
-        "phone_configure": "FAIL"
+        "device_id": null,
+        "phone_configure": "FAILS",
+        "proxy": "192.168.1.15:9003"
     },
     "thuyvy349879": {
         "username": "thuyvy349879",
@@ -24,7 +26,8 @@
         "email_password": "0DWSXylxDC",
         "category": "All category",
         "device_id": null,
-        "phone_configure": "NOT_YET"
+        "phone_configure": "NOT_YET",
+        "proxy": "192.168.1.15:9004"
     },
     "thuongthuong154527": {
         "username": "thuongthuong154527",
@@ -33,7 +36,8 @@
         "email_password": "8M9hNk10LA",
         "category": "All category",
         "device_id": null,
-        "phone_configure": "FAIL"
+        "phone_configure": "NOT_YET",
+        "proxy": "192.168.1.15:9005"
     },
     "dieunga542914": {
         "username": "dieunga542914",
@@ -42,7 +46,8 @@
         "email_password": "7tR1sh8EWd",
         "category": "All category",
         "device_id": null,
-        "phone_configure": "FAIL"
+        "phone_configure": "NOT_YET",
+        "proxy": "192.168.1.15:9006"
     },
     "truclam195497": {
         "username": "truclam195497",
@@ -51,7 +56,8 @@
         "email_password": "8wZEp6Nmgm",
         "category": "All category",
         "device_id": null,
-        "phone_configure": "FAIL"
+        "phone_configure": "NOT_YET",
+        "proxy": "192.168.1.15:9002"
     },
     "baotran944600": {
         "username": "baotran944600",
@@ -59,8 +65,9 @@
         "email": "demetrapechaira280692@hotmail.com",
         "email_password": "3OrW53YfwM",
         "category": "All category",
-        "device_id": "ce0817182b1ae49a0b",
-        "phone_configure": "SUCCESS"
+        "device_id": null,
+        "phone_configure": "NOT_YET",
+        "proxy": "192.168.1.15:9003"
     },
     "thuyngoc325850": {
         "username": "thuyngoc325850",
@@ -69,7 +76,8 @@
         "email_password": "4jKu0I5KnU",
         "category": "All category",
         "device_id": null,
-        "phone_configure": "NOT_YET"
+        "phone_configure": "NOT_YET",
+        "proxy": "192.168.1.15:9004"
     },
     "quynhhuong902169": {
         "username": "quynhhuong902169",
@@ -78,6 +86,7 @@
         "email_password": "6xr7qVroyL",
         "category": "All category",
         "device_id": null,
-        "phone_configure": "NOT_YET"
+        "phone_configure": "NOT_YET",
+        "proxy": "192.168.1.15:9005"
     }
 }
