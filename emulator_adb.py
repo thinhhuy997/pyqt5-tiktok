@@ -39,9 +39,26 @@ class Auto():
     def click(self,x,y):
         os.system(f"adb -s {self.handle} shell input tap {x} {y}")
     def heart(self,x,y):
-        while True:
-            os.system(f"adb -s {self.handle} shell input swipe {x} {y} {x} {y} 0 ")
-            print('hearting...')
+        tap_command = f'input tap {x} {y}'
+        tap_count = random.randint(6, 10)  # You can adjust this count based on your needs
+        delay_between_taps = 0.4  # You can adjust the delay in seconds
+
+        tap_commands = ' & '.join([f'{tap_command} & sleep {delay_between_taps}' for _ in range(tap_count)])
+
+        os.system(f'adb -s {self.handle} shell "{tap_commands}"')
+
+        print("hearting...")
+        time.sleep(1)
+
+    def heart2(self,x,y):
+        tap_command = f'input tap {x} {y}'
+        tap_count = random.randint(6, 10)  # You can adjust this count based on your needs
+        delay_between_taps = 0.4  # You can adjust the delay in seconds
+
+        tap_commands = ' & '.join([f'{tap_command} & sleep {delay_between_taps}' for _ in range(tap_count)])
+
+        os.system(f'adb -s {self.handle} shell "{tap_commands}"')
+            
         
     def find(self,img='',template_pic_name=False,threshold=0.99):
         if template_pic_name == False:
@@ -54,6 +71,28 @@ class Auto():
         result = cv2.matchTemplate(img,img2,cv2.TM_CCOEFF_NORMED)
         loc = np.where(result >= threshold)
         test_data = list(zip(*loc[::-1]))
+        return test_data
+    def find2(self, img='', template_pic_name=False, threshold=0.99):
+        if template_pic_name == False:
+            self.screen_capture(self.handle)
+            template_pic_name = self.handle + '.png'
+        else:
+            self.screen_capture(template_pic_name)
+
+        # Read the images in color
+        img = cv2.imread(img)
+        img2 = cv2.imread(template_pic_name)
+
+        # Perform template matching for each channel (B, G, R)
+        result = cv2.matchTemplate(img, img2, cv2.TM_CCOEFF_NORMED)
+
+        # Find locations where the result is greater than or equal to the threshold
+        loc = np.where(result >= threshold)
+
+        # Zip the coordinates to get the test_data
+        test_data = list(zip(*loc[::-1]))
+
+        # Return the result
         return test_data
     def sendText(self, text: str) -> None:
         os.system(f"adb -s {self.handle} shell input text '{text}'")
@@ -568,93 +607,118 @@ class EmulatorWorker(QRunnable):
 
     def interact_tiktok(self, adb_auto: Auto):
         try:
-            # #########################(STEP 0 - SET PROXY)##############################
-            # # self.signals.result.emit(f'Đang tiến hành set proxy {self.proxy}')
-            # # adb_auto.remove_proxy()
-            # # time.sleep(1)
-            # # adb_auto.set_proxy(self.proxy)
-            
-
-            # #########################(STEP 1 - BACK TO THE HOME SCREEN)##############################
-            # time.sleep(2)
-            # self.signals.result.emit('Đang tiến hành tương tác...')
-            # adb_auto.backHome()
-            # time.sleep(2)
-
-            # adb_auto.offApp("com.zhiliaoapp.musically")
-            # time.sleep(1)
-
-            # #########################(STEP 2 - START THE TIKTOK APP)##############################
-
-            # self.signals.result.emit('Đang mở app tiktok')
-            # start_check_time = time.time()
-            # while time.time() - start_check_time < 20:
-            #     point_1 = adb_auto.find("./images/tiktok-phone-1.png")
-            #     point_1_tmp = adb_auto.find("./images/tiktok-phone-2.png")
-            #     if point_1 > [(0, 0)]:
-            #         adb_auto.click(point_1[0][0], point_1[0][1])
-            #         break
-            #     elif point_1_tmp > [(0, 0)]:
-            #         adb_auto.click(point_1_tmp[0][0], point_1_tmp[0][1])
-            #         break
-            
-            # #########################(STEP 3 - LOCATE TO THE TIKTOK HOME SCREEN)##############################
-            # # self.signals.result.emit('Chuyển qua màn hình chính của tiktok')
-            # # start_check_time = time.time()
-            # # while time.time() - start_check_time < 20:
-            # #     point_2 = adb_auto.find("./images/tiktok-home-tab.png")
-            # #     if point_2 > [(0, 0)]:
-            # #         time.sleep(0.5)
-            # #         adb_auto.click(point_2[0][0], point_2[0][1])
-
-            # #########################(STEP 4 - SWIPE UP WITH A FEW TIMES)##############################
-            # self.signals.result.emit('Lướt random vài lần...')
-            # random_num = random.randint(2, 10)
-            # time.sleep(1)
-            # for i in range(random_num):
-            #     ran_sleep = random.uniform(0.4, 1.4)
-            #     adb_auto.swipe(766.8,1810.5, 768.6,600.8)
-            #     time.sleep(ran_sleep)
-
-            
-            # #########################(STEP 5 - SEARCH LIVESTREAM)##############################
-            # self.signals.result.emit('Đang tìm livestream nguồn...')
-            # start_check_time = time.time()
-            # while time.time() - start_check_time < 20:
-            #     point_3 = adb_auto.find("./images/tiktok-create-new-button.png")
-            #     if point_3 > [(0, 0)]:
-            #         time.sleep(0.5)
-            #         adb_auto.click(1326.9,185.0)
-            #         time.sleep(1)
-            #         adb_auto.sendText(self.configure["live_source"])
-            #         time.sleep(0.5)
-            #         adb_auto.enter()
-
-            # #########################(STEP 6 - CLICK LIVE TAB)##############################
-            # self.signals.result.emit('Chuyển qua tab LIVE')
-            # start_check_time = time.time()
-            # while time.time() - start_check_time < 20:
-            #     point_4 = adb_auto.find("./images/tiktok-live-tab.png")
-            #     if point_4 > [(0, 0)]:
-            #         time.sleep(0.5)
-            #         adb_auto.click(point_4[0][0], point_4[0][1])
-            #         break
-
-            # time.sleep(2)
-
-            # #########################(STEP 7 - CLICK FIRST LIVESTREAM)##############################
-            # self.signals.result.emit('Vào livestream đầu tiên')
-            # adb_auto.click(373.2,1329.4)
-
-            #########################(STEP 8 - HEARTING)##############################
-
-            time.sleep(5)
-            self.signals.result.emit('Tiến hành thả tim')
-            # start_interaction_time = time.time()
             while True:
-                # 1192.5,1234.0
-                adb_auto.heart(1188.1,900.2)
-            # self.signals.result.emit('Thả tim xong')
+                #########################(STEP 0 - SET PROXY)##############################
+                # self.signals.result.emit(f'Đang tiến hành set proxy {self.proxy}')
+                # adb_auto.remove_proxy()
+                # time.sleep(1)
+                # adb_auto.set_proxy(self.proxy)
+                
+
+                #########################(STEP 1 - BACK TO THE HOME SCREEN)##############################
+                time.sleep(2)
+                self.signals.result.emit('Đang tiến hành tương tác...')
+                adb_auto.backHome()
+                time.sleep(2)
+
+                adb_auto.offApp("com.zhiliaoapp.musically")
+                time.sleep(1)
+
+                #########################(STEP 2 - START THE TIKTOK APP)##############################
+
+                self.signals.result.emit('Đang mở app tiktok')
+                start_check_time = time.time()
+                while time.time() - start_check_time < 20:
+                    point_1 = adb_auto.find("./images/tiktok-phone-1.png")
+                    point_1_tmp = adb_auto.find("./images/tiktok-phone-2.png")
+                    if point_1 > [(0, 0)]:
+                        adb_auto.click(point_1[0][0], point_1[0][1])
+                        break
+                    elif point_1_tmp > [(0, 0)]:
+                        adb_auto.click(point_1_tmp[0][0], point_1_tmp[0][1])
+                        break
+                
+                #########################(STEP 3 - LOCATE TO THE TIKTOK HOME SCREEN)##############################
+                # self.signals.result.emit('Chuyển qua màn hình chính của tiktok')
+                # start_check_time = time.time()
+                # while time.time() - start_check_time < 20:
+                #     point_2 = adb_auto.find("./images/tiktok-home-tab.png")
+                #     if point_2 > [(0, 0)]:
+                #         time.sleep(0.5)
+                #         adb_auto.click(point_2[0][0], point_2[0][1])
+
+                #########################(STEP 4 - SWIPE UP WITH A FEW TIMES)##############################
+                self.signals.result.emit('Lướt random vài lần...')
+                random_num = random.randint(2, 10)
+                time.sleep(1)
+                for i in range(random_num):
+                    ran_sleep = random.uniform(0.4, 1.4)
+                    adb_auto.swipe(766.8,1810.5, 768.6,600.8)
+                    time.sleep(ran_sleep)
+
+                
+                #########################(STEP 5 - SEARCH LIVESTREAM)##############################
+                self.signals.result.emit('Đang tìm livestream nguồn...')
+                start_check_time = time.time()
+                while time.time() - start_check_time < 20:
+                    point_3 = adb_auto.find("./images/tiktok-create-new-button.png")
+                    if point_3 > [(0, 0)]:
+                        time.sleep(0.5)
+                        adb_auto.click(1326.9,185.0)
+                        time.sleep(1)
+                        adb_auto.sendText(self.configure["live_source"])
+                        time.sleep(0.5)
+                        adb_auto.enter()
+
+                #########################(STEP 6 - CLICK LIVE TAB)##############################
+                self.signals.result.emit('Chuyển qua tab LIVE')
+                start_check_time = time.time()
+                while time.time() - start_check_time < 20:
+                    point_4 = adb_auto.find("./images/tiktok-live-tab.png")
+                    if point_4 > [(0, 0)]:
+                        time.sleep(0.5)
+                        adb_auto.click(point_4[0][0], point_4[0][1])
+                        break
+
+                time.sleep(2)
+
+                #########################(STEP 7 - CLICK FIRST LIVESTREAM)##############################
+                self.signals.result.emit('Vào livestream đầu tiên')
+                adb_auto.click(373.2,1329.4)
+
+                #########################(STEP 8 - CHECK WHETHER BLOCKING FEATURES)##############################
+                self.signals.result.emit('Kiểm tra xem liệu có bị chặn tính năng?')
+                start_check_time = time.time()
+                while time.time() - start_check_time < 30:
+                    point_5 = adb_auto.find("./images/blocking_feat_sign-3.png")
+                    if point_5 > [(0, 0)]:
+                        break
+                
+                # Throw some heart first
+                adb_auto.heart2(728.7,1004.3)
+                
+                if point_5 > [(0, 0)]:
+                    self.signals.result.emit(f'Có bị chặn tính năng - point 5: {point_5}')
+                    time.sleep(5)
+                    adb_auto.offApp("com.zhiliaoapp.musically")
+                else:
+                    #########################(STEP 9 - HEARTING)##############################
+                    time.sleep(5)
+                    self.signals.result.emit('Tiến hành thả tim')
+                    # start_interaction_time = time.time()
+                    # while True:
+                        # 1192.5,1234.0
+                    count = 0
+                    while True:
+                        if count >= 5:
+                            point_5 = adb_auto.find("./images/blocking_feat_sign-3.png")
+                            if point_5 > [(0, 0)]:
+                                break
+                            count = 0
+                        adb_auto.heart(728.7, 1004.3)
+
+                        count += 1
+                        
                     
 
         except Exception as e:

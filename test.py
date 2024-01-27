@@ -1,45 +1,14 @@
-from PyQt5.QtWidgets import QApplication, QTableWidget, QTableWidgetItem, QPushButton, QVBoxLayout, QWidget
-import sys
+import time
+import os
 
-class MyTableWidget(QWidget):
-    def __init__(self):
-        super().__init__()
+# Assuming self.handle, x, and y are defined somewhere before this code
 
-        self.initUI()
+tap_command = f'input tap {10} {20}'
+tap_count = 15  # You can adjust this count based on your needs
+delay_between_taps = 0.2  # You can adjust the delay in seconds
 
-    def initUI(self):
-        # Create a QTableWidget with 3 rows and 3 columns
-        self.tableWidget = QTableWidget(self)
-        self.tableWidget.setRowCount(3)
-        self.tableWidget.setColumnCount(3)
+tap_commands = ' & '.join([f'{tap_command} sleep {delay_between_taps};' for _ in range(tap_count)])
 
-        # Fill the table with buttons
-        for row in range(3):
-            for col in range(3):
-                button = QPushButton(f"Button {row}-{col}")
-                button.setEnabled(True)  # By default, buttons are enabled
-                self.tableWidget.setCellWidget(row, col, button)
+print(tap_commands)
 
-        # Get the button item at specific row and column
-        row_index = 1
-        col_index = 2
-        item = self.tableWidget.cellWidget(row_index, col_index)
-
-        if isinstance(item, QPushButton):
-            item.setEnabled(False)  # Set the button to be disabled
-            print(f"Button at row {row_index}, column {col_index} disabled")
-        else:
-            print(f"No button at row {row_index}, column {col_index}")
-
-        # Set up the layout
-        layout = QVBoxLayout()
-        layout.addWidget(self.tableWidget)
-        self.setLayout(layout)
-
-        self.setWindowTitle('QTableWidget Example')
-        self.show()
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    window = MyTableWidget()
-    sys.exit(app.exec_())
+# os.system(f'adb -s {self.handle} shell "{tap_commands}"')
