@@ -2292,13 +2292,18 @@ class Ui_MainWindow(object):
         account = result[0]
         device = result[1]
         status = result[2]
+        
+        print('=============================================')
+        print(f"{account["username"]} - status: {status}")
+        print('=============================================')
+
         if status == True:
+            print(f'Tiến hành thiết lập device {device} cho {account["username"]}')
             self.changeWorkerCellTableValue(row=row, col=self.worker_column_order.index('device_id'), newValue=device)
-            for key in self.cloned_accounts:
-                if self.cloned_accounts[key] == account["username"]:
-                    # update device_id for account in self.cloned_accounts
-                    self.cloned_accounts[key]["device_id"] = device
-                    self.cloned_accounts[key]["phone_configure"] = ConfigureStatus.SUCCESS.value
+            key = account["username"]
+            self.cloned_accounts[key]["device_id"] = device
+            self.cloned_accounts[key]["phone_configure"] = ConfigureStatus.SUCCESS.value
+
             color = Color.SUCCESS.value
             self.setColortoRow(self.t3tableWidget, row, color)
         else:
@@ -2306,6 +2311,7 @@ class Ui_MainWindow(object):
             self.setColortoRow(self.t3tableWidget, row, color)
             self.cloned_accounts[account["username"]]["phone_configure"] = ConfigureStatus.FAIL.value
 
+        print('Lưu cloned account xuống file')
         self.saveClonedJsonFile(json_data=self.cloned_accounts)
 
         # self.waiting_workers.pop()

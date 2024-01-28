@@ -16,7 +16,7 @@
         "email_password": "7G9Q6ZHqHk",
         "category": "All category",
         "device_id": null,
-        "phone_configure": "FAILS",
+        "phone_configure": "FAIL",
         "proxy": "192.168.1.15:9003"
     },
     "thuyvy349879": {
@@ -26,7 +26,7 @@
         "email_password": "0DWSXylxDC",
         "category": "All category",
         "device_id": null,
-        "phone_configure": "NOT_YET",
+        "phone_configure": "FAIL",
         "proxy": "192.168.1.15:9004"
     },
     "thuongthuong154527": {
@@ -36,7 +36,7 @@
         "email_password": "8M9hNk10LA",
         "category": "All category",
         "device_id": null,
-        "phone_configure": "NOT_YET",
+        "phone_configure": "SUCCESS",
         "proxy": "192.168.1.15:9005"
     },
     "dieunga542914": {

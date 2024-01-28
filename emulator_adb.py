@@ -40,10 +40,10 @@ class Auto():
         os.system(f"adb -s {self.handle} shell input tap {x} {y}")
     def heart(self,x,y):
         tap_command = f'input tap {x} {y}'
-        tap_count = random.randint(6, 10)  # You can adjust this count based on your needs
-        delay_between_taps = 0.4  # You can adjust the delay in seconds
+        tap_count = random.randint(3, 6)  # You can adjust this count based on your needs
+        delay_between_taps = 0.2  # You can adjust the delay in seconds
 
-        tap_commands = ' & '.join([f'{tap_command} & sleep {delay_between_taps}' for _ in range(tap_count)])
+        tap_commands = f' & sleep {delay_between_taps} & '.join([f'{tap_command}' for _ in range(tap_count)])
 
         os.system(f'adb -s {self.handle} shell "{tap_commands}"')
 
@@ -58,6 +58,10 @@ class Auto():
         tap_commands = ' & '.join([f'{tap_command} & sleep {delay_between_taps}' for _ in range(tap_count)])
 
         os.system(f'adb -s {self.handle} shell "{tap_commands}"')
+
+    def heart_text(self, x, y):
+        os.system(f"adb -s {self.handle} shell input tap {x} {y}")
+        print('đang thả tim')
             
         
     def find(self,img='',template_pic_name=False,threshold=0.99):
@@ -96,6 +100,8 @@ class Auto():
         return test_data
     def sendText(self, text: str) -> None:
         os.system(f"adb -s {self.handle} shell input text '{text}'")
+    def sendUnicodeText(self, text: str) -> None:
+        os.system(f"adb -s {self.handle} shell am broadcast -a ADB_INPUT_TEXT --es msg '{text}'")
     def deleteText(self) -> None:
         os.system(f"adb -s {self.handle} shell input keyevent KEYCODE_DEL")
     def enter(self) -> None:
@@ -665,7 +671,7 @@ class EmulatorWorker(QRunnable):
                     if point_3 > [(0, 0)]:
                         time.sleep(0.5)
                         adb_auto.click(1326.9,185.0)
-                        time.sleep(1)
+                        time.sleep(4)
                         adb_auto.sendText(self.configure["live_source"])
                         time.sleep(0.5)
                         adb_auto.enter()
@@ -687,37 +693,52 @@ class EmulatorWorker(QRunnable):
                 adb_auto.click(373.2,1329.4)
 
                 #########################(STEP 8 - CHECK WHETHER BLOCKING FEATURES)##############################
-                self.signals.result.emit('Kiểm tra xem liệu có bị chặn tính năng?')
-                start_check_time = time.time()
-                while time.time() - start_check_time < 30:
-                    point_5 = adb_auto.find("./images/blocking_feat_sign-3.png")
-                    if point_5 > [(0, 0)]:
-                        break
+                # self.signals.result.emit('Kiểm tra xem liệu có bị chặn tính năng?')
+                # start_check_time = time.time()
+                # while time.time() - start_check_time < 30:
+                #     point_5 = adb_auto.find("./images/blocking_feat_sign-3.png")
+                #     if point_5 > [(0, 0)]:
+                #         break
                 
                 # Throw some heart first
-                adb_auto.heart2(728.7,1004.3)
+                # adb_auto.heart2(728.7,1004.3)
                 
-                if point_5 > [(0, 0)]:
-                    self.signals.result.emit(f'Có bị chặn tính năng - point 5: {point_5}')
-                    time.sleep(5)
-                    adb_auto.offApp("com.zhiliaoapp.musically")
-                else:
-                    #########################(STEP 9 - HEARTING)##############################
-                    time.sleep(5)
-                    self.signals.result.emit('Tiến hành thả tim')
-                    # start_interaction_time = time.time()
-                    # while True:
-                        # 1192.5,1234.0
-                    count = 0
-                    while True:
-                        if count >= 5:
-                            point_5 = adb_auto.find("./images/blocking_feat_sign-3.png")
-                            if point_5 > [(0, 0)]:
-                                break
-                            count = 0
-                        adb_auto.heart(728.7, 1004.3)
 
-                        count += 1
+                #########################(STEP 9 - HEARTING)##############################
+                time.sleep(4)
+                self.signals.result.emit('Tiến hành thả tim')
+                # start_interaction_time = time.time()
+                # while True:
+                    # 1192.5,1234.0
+                count = 0
+                while True:
+                    if count >= 6:
+                        point_6 = adb_auto.find("./images/blocking_feat_sign-3.png")
+                        if point_6 > [(0, 0)]:
+                            break
+                        count = 0
+
+                    if count == 3: #commenting
+                        with open("./tik_configs/comments.txt", 'r', encoding='utf-8') as file:
+                            lines = file.readlines()
+                            lines = [line.replace("\n", "") for line in lines]
+
+                        random_num = random.randint(0, len(lines) - 1)
+                        ran_cmt = lines[random_num]
+                        print(ran_cmt)
+
+                        adb_auto.click(342.9,2460.8)
+                        time.sleep(2)
+                        adb_auto.sendUnicodeText(ran_cmt)
+                        # os.system(f"adb -s ce011711e365a00304 shell am broadcast -a ADB_INPUT_TEXT --es msg '{str(ran_cmt)}'")
+                        time.sleep(10)
+                        adb_auto.enter()
+                    # adb_auto.heart(728.7, 1004.3)
+                        
+                    adb_auto.heart(715.7,713.8)
+                    # 342.9,2460.
+
+                    count += 1
                         
                     
 
